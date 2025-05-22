@@ -22,7 +22,8 @@ import {
     FileJson,
     Home,
     Menu,
-    X
+    X,
+    Coffee
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -31,20 +32,22 @@ type NavItem = {
     name: string;
     icon: React.ElementType;
     path: string;
+    category?: string;
 };
 
 const navItems: NavItem[] = [
     { name: "Home", icon: Home, path: "/" },
-    { name: "To-Do List", icon: ListTodo, path: "/todo" },
-    { name: "Deploy Checklist", icon: CheckSquare, path: "/deploy-checklist" },
-    { name: "Code Snippets", icon: FileText, path: "/code-snippets" },
-    { name: "Lo-Fi Music", icon: Music, path: "/lofi" },
-    { name: "Pomodoro", icon: Clock, path: "/pomodoro" },
-    { name: "Quick Search", icon: Search, path: "/search" },
-    { name: "Internet Search", icon: Globe, path: "/internet-search" },
-    { name: "Water Reminder", icon: Droplet, path: "/water-reminder" },
-    { name: "Fake Data", icon: Database, path: "/fake-data" },
-    { name: "JSON Formatter", icon: FileJson, path: "/json-formatter" },
+    { name: "To-Do List", icon: ListTodo, path: "/todo", category: "productivity" },
+    { name: "Deploy Checklist", icon: CheckSquare, path: "/deploy-checklist", category: "development" },
+    { name: "Code Snippets", icon: FileText, path: "/code-snippets", category: "development" },
+    { name: "Lo-Fi Music", icon: Music, path: "/lofi", category: "productivity" },
+    { name: "Pomodoro", icon: Clock, path: "/pomodoro", category: "productivity" },
+    { name: "Quick Search", icon: Search, path: "/search", category: "development" },
+    { name: "Internet Search", icon: Globe, path: "/internet-search", category: "productivity" },
+    { name: "Water Reminder", icon: Droplet, path: "/water-reminder", category: "productivity" },
+    { name: "Fake Data", icon: Database, path: "/fake-data", category: "development" },
+    { name: "JSON Formatter", icon: FileJson, path: "/json-formatter", category: "development" },
+    { name: "Apoie o Projeto", icon: Coffee, path: "/donation" },
 ];
 
 interface SidebarProps {
@@ -90,7 +93,7 @@ export function Sidebar({ theme, toggleTheme }: SidebarProps) {
                     <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
                         <h1 className={cn(
                             "font-bold text-xl text-primary transition-opacity duration-300",
-                            collapsed && !isMobile ? "opacity-0 w-0 hidden" : "opacity-100"
+                            collapsed && !isMobile ? "opacity-0 w-0" : "opacity-100"
                         )}>
                             FlowHub
                         </h1>
@@ -99,7 +102,7 @@ export function Sidebar({ theme, toggleTheme }: SidebarProps) {
                                 variant="ghost"
                                 size="icon"
                                 onClick={toggleSidebar}
-                                className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer"
+                                className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                             >
                                 <Menu size={18} />
                             </Button>
@@ -111,6 +114,8 @@ export function Sidebar({ theme, toggleTheme }: SidebarProps) {
                             <ul className="space-y-1">
                                 {navItems.map((item) => {
                                     const isActive = location.pathname === item.path;
+                                    const isDonation = item.path === "/donation";
+
                                     return (
                                         <li key={item.name}>
                                             <Tooltip>
@@ -122,13 +127,19 @@ export function Sidebar({ theme, toggleTheme }: SidebarProps) {
                                                             isActive
                                                                 ? "bg-sidebar-accent text-sidebar-accent-foreground"
                                                                 : "hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                                                            isDonation ? "mt-4 border border-dashed border-primary/50" : "",
                                                             collapsed && !isMobile ? "justify-center" : "justify-start"
                                                         )}
                                                         onClick={() => isMobile && setMobileOpen(false)}
                                                     >
-                                                        <item.icon size={18} />
+                                                        <item.icon size={18} className={isDonation ? "text-primary" : ""} />
                                                         {(!collapsed || isMobile) && (
-                                                            <span className="ml-3 truncate">{item.name}</span>
+                                                            <span className={cn(
+                                                                "ml-3 truncate",
+                                                                isDonation ? "text-primary font-medium" : ""
+                                                            )}>
+                                                            {item.name}
+                                                          </span>
                                                         )}
                                                     </Link>
                                                 </TooltipTrigger>

@@ -11,7 +11,8 @@ import {
     Database,
     FileJson,
     Zap,
-    Layout
+    Layout,
+    Coffee
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -27,6 +28,7 @@ type Tool = {
     icon: React.ReactNode;
     path: string;
     category: string;
+    highlight?: boolean;
 };
 
 const categories: Category[] = [
@@ -253,6 +255,55 @@ const Index = () => {
                 </motion.section>
             ))}
 
+            <motion.section
+                className="mb-16"
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, amount: 0.2 }}
+                variants={{
+                    hidden: { opacity: 0 },
+                    show: {
+                        opacity: 1,
+                        transition: {
+                            staggerChildren: 0.1
+                        }
+                    }
+                }}
+            >
+                <motion.div
+                    className="flex items-center gap-3 mb-8"
+                    variants={item}
+                >
+                    <div className="p-2 rounded-md bg-primary/10 text-primary">
+                        <Coffee className="h-5 w-5" />
+                    </div>
+                    <h2 className="text-2xl font-semibold">Apoie o projeto</h2>
+                    <div className="h-[1px] flex-1 bg-border"></div>
+                </motion.div>
+
+                <motion.div
+                    variants={item}
+                    className="max-w-xl mx-auto"
+                >
+                    <Link to="/donation" className="block h-full">
+                        <motion.div
+                            className="tool-card group h-full border-dashed border-primary/40"
+                            whileHover={{
+                                y: -5,
+                                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)"
+                            }}
+                            transition={{ type: "spring", stiffness: 300 }}
+                        >
+                            <div className="tool-card-icon group-hover:scale-110 transition-transform bg-primary/20">
+                                <Coffee className="h-8 w-8 text-primary" />
+                            </div>
+                            <h3 className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors">Apoie com um café</h3>
+                            <p className="text-sm text-muted-foreground">Gostou do FlowHub? Considere fazer uma doação para apoiar o projeto.</p>
+                        </motion.div>
+                    </Link>
+                </motion.div>
+            </motion.section>
+
             <motion.div
                 className="mt-12 p-8 border border-border rounded-xl bg-card/50 text-center relative overflow-hidden"
                 initial={{ opacity: 0, y: 20 }}
@@ -261,6 +312,7 @@ const Index = () => {
                 viewport={{ once: true }}
             >
                 <div className="absolute -inset-[1px] bg-gradient-to-r from-primary/20 via-transparent to-primary/20 rounded-xl blur-sm opacity-50"></div>
+
                 <div className="relative z-10">
                     <h2 className="text-2xl font-bold mb-3">Pronto para aumentar sua produtividade?</h2>
                     <p className="text-muted-foreground mb-6">

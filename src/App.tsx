@@ -16,6 +16,7 @@ import InternetSearch from "./pages/InternetSearch";
 import WaterReminder from "./pages/WaterReminder";
 import FakeData from "./pages/FakeData";
 import JsonFormatter from "./pages/JsonFormatter";
+import Donation from "./pages/Donation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
                         <Route path="/fake-data" element={<FakeData />} />
                         <Route path="/json-formatter" element={<JsonFormatter />} />
                         <Route path="*" element={<NotFound />} />
+                        <Route path="/donation" element={<Donation />} />
                     </Route>
                 </Routes>
             </BrowserRouter>
