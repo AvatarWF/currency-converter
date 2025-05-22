@@ -10,7 +10,6 @@ const Layout = () => {
     );
     const isMobile = useIsMobile();
 
-    // Apply the theme class to the document element
     useEffect(() => {
         const root = window.document.documentElement;
         root.classList.remove('light', 'dark');
