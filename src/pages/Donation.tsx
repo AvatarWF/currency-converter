@@ -211,6 +211,9 @@ const Donation = () => {
                     <p className="text-muted-foreground mb-0">
                         Seu apoio significa muito e ajuda a manter este projeto em constante evolução.
                     </p>
+                    <p className="text-muted-foreground mt-2">
+                        Desenvolvido com ❤️ por <a href="https://dev-gg.vercel.app/" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Gabriel Girardi</a>.
+                    </p>
                 </div>
             </motion.div>
         </div>

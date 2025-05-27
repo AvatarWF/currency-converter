@@ -318,6 +318,9 @@ const Index = () => {
                     <p className="text-muted-foreground mb-6">
                         Explore todas as ferramentas e descubra como o FlowHub pode ajudar no seu dia a dia.
                     </p>
+                    <p className="text-muted-foreground mt-2">
+                        Desenvolvido com ❤️ por <a href="https://dev-gg.vercel.app/" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Gabriel Girardi</a>.
+                    </p>
                 </div>
             </motion.div>
         </div>
