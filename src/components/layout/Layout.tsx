@@ -6,7 +6,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 const Layout = () => {
     const [theme, setTheme] = useState<'light' | 'dark'>(
-        () => (localStorage.getItem('theme') as 'light' | 'dark') || 'light'
+        () => (localStorage.getItem('theme') as 'light' | 'dark') || 'dark'
     );
     const isMobile = useIsMobile();
 

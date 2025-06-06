@@ -51,7 +51,7 @@ const CodeHighlighter: React.FC<CodeHighlighterProps> = ({
  }) => {
     return (
         <div className="relative rounded-md overflow-hidden w-full">
-            <div className="max-w-full overflow-x-auto">
+            <div className="max-w-full max-h-[600px] overflow-scroll">
                 <SyntaxHighlighter
                     language={language}
                     style={theme === 'dark' ? atomDark : vs}

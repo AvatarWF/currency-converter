@@ -18,6 +18,10 @@ import {
     ChevronUp,
     Save,
     ArrowLeft,
+    BarChart3,
+    Target,
+    TrendingUp,
+    Users
 } from "lucide-react";
 import {
     Dialog,
@@ -71,20 +75,45 @@ interface KanbanColumnConfig {
     id: KanbanColumn;
     title: string;
     color: string;
+    bgColor: string;
     icon: React.ComponentType<any>;
 }
 
 const columnsConfig: KanbanColumnConfig[] = [
-    { id: 'todo', title: 'A Fazer', color: 'text-blue-500', icon: Calendar },
-    { id: 'inProgress', title: 'Em Progresso', color: 'text-yellow-500', icon: Clock },
-    { id: 'review', title: 'Em Revisão', color: 'text-orange-500', icon: Edit },
-    { id: 'done', title: 'Concluído', color: 'text-green-500', icon: Plus },
+    {
+        id: 'todo',
+        title: 'A Fazer',
+        color: 'text-blue-600',
+        bgColor: 'bg-blue-50 dark:bg-blue-950/20',
+        icon: Calendar
+    },
+    {
+        id: 'inProgress',
+        title: 'Em Progresso',
+        color: 'text-yellow-600',
+        bgColor: 'bg-yellow-50 dark:bg-yellow-950/20',
+        icon: Clock
+    },
+    {
+        id: 'review',
+        title: 'Em Revisão',
+        color: 'text-orange-600',
+        bgColor: 'bg-orange-50 dark:bg-orange-950/20',
+        icon: Edit
+    },
+    {
+        id: 'done',
+        title: 'Concluído',
+        color: 'text-green-600',
+        bgColor: 'bg-green-50 dark:bg-green-950/20',
+        icon: Target
+    },
 ];
 
 const priorityConfig = {
-    low: { label: 'Baixa', color: 'bg-green-500/10 text-green-500 border-green-500/20' },
-    medium: { label: 'Média', color: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' },
-    high: { label: 'Alta', color: 'bg-red-500/10 text-red-500 border-red-500/20' },
+    low: { label: 'Baixa', color: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400' },
+    medium: { label: 'Média', color: 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400' },
+    high: { label: 'Alta', color: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400' },
 };
 
 const Kanban = () => {
@@ -245,42 +274,154 @@ const Kanban = () => {
         return acc;
     }, {});
 
+    // Cálculo de estatísticas
+    const totalTasks = tasks.length;
+    const doneTasks = tasks.filter(task => task.column === 'done').length;
+    const inProgressTasks = tasks.filter(task => task.column === 'inProgress').length;
+    const highPriorityTasks = tasks.filter(task => task.priority === 'high' && task.column !== 'done').length;
+    const completionRate = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+
     return (
-        <div className="container mx-auto max-w-7xl">
+        <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
+            {/* Header com efeito parallax */}
             <motion.div
-                initial={{ opacity: 0, y: -20 }}
+                initial={{ opacity: 0, y: -50 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="flex justify-between items-center mb-6"
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="relative overflow-hidden"
             >
-                <h1 className="text-3xl font-bold">Quadro Kanban</h1>
-                <Button onClick={() => setIsAddDialogOpen(true)}>
-                    <Plus size={18} className="mr-2" /> Nova Tarefa
-                </Button>
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5" />
+                <div className="relative container mx-auto max-w-7xl px-4 py-16">
+                    <motion.div
+                        className="text-center"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.2 }}
+                    >
+                        <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-6">
+                            <BarChart3 className="h-12 w-12 text-primary" />
+                        </div>
+                        <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60 mb-4">
+                            Quadro Kanban
+                        </h1>
+                        <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                            Gerencie suas tarefas de forma visual e organizada com nosso sistema Kanban intuitivo
+                        </p>
+                    </motion.div>
+                </div>
             </motion.div>
 
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-            >
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="container mx-auto max-w-7xl px-4 -mt-8">
+                {/* Cards de Estatísticas */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.4 }}
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+                >
+                    <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/30">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-blue-600 dark:text-blue-400 text-sm font-medium">Total de Tarefas</p>
+                                    <p className="text-3xl font-bold text-blue-700 dark:text-blue-300">{totalTasks}</p>
+                                </div>
+                                <div className="p-3 bg-blue-200 dark:bg-blue-800 rounded-full">
+                                    <BarChart3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/30">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-green-600 dark:text-green-400 text-sm font-medium">Concluídas</p>
+                                    <p className="text-3xl font-bold text-green-700 dark:text-green-300">{doneTasks}</p>
+                                </div>
+                                <div className="p-3 bg-green-200 dark:bg-green-800 rounded-full">
+                                    <Target className="h-6 w-6 text-green-600 dark:text-green-400" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-0 shadow-lg bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950/50 dark:to-yellow-900/30">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-yellow-600 dark:text-yellow-400 text-sm font-medium">Em Progresso</p>
+                                    <p className="text-3xl font-bold text-yellow-700 dark:text-yellow-300">{inProgressTasks}</p>
+                                </div>
+                                <div className="p-3 bg-yellow-200 dark:bg-yellow-800 rounded-full">
+                                    <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/50 dark:to-purple-900/30">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-purple-600 dark:text-purple-400 text-sm font-medium">Taxa de Conclusão</p>
+                                    <p className="text-3xl font-bold text-purple-700 dark:text-purple-300">{completionRate}%</p>
+                                </div>
+                                <div className="p-3 bg-purple-200 dark:bg-purple-800 rounded-full">
+                                    <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </motion.div>
+
+                {/* Botão de Nova Tarefa */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.6 }}
+                    className="flex justify-between items-center mb-8"
+                >
+                    <div>
+                        <h2 className="text-2xl font-semibold">Quadro de Tarefas</h2>
+                        <p className="text-muted-foreground">Arraste e solte as tarefas entre as colunas</p>
+                    </div>
+                    <Button
+                        onClick={() => setIsAddDialogOpen(true)}
+                        className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg"
+                    >
+                        <Plus size={18} className="mr-2" /> Nova Tarefa
+                    </Button>
+                </motion.div>
+
+                {/* Colunas do Kanban */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.8 }}
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+                >
                     {columnsConfig.map((column, index) => (
                         <motion.div
                             key={column.id}
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.5, delay: 0.1 + index * 0.1 }}
+                            transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
                         >
-                            <Card className="h-full flex flex-col pt-0 overflow-hidden">
-                                <CardHeader className={`flex items-center bg-primary py-1 ${collapsedColumns[column.id] ? 'border-b' : ''}`}>
-                                    <div className="flex justify-between items-center w-full">
+                            <Card className="h-full flex flex-col border-0 shadow-lg overflow-hidden">
+                                <CardHeader className={`${column.bgColor} border-b`}>
+                                    <div className="flex justify-between items-center">
                                         <div className="flex items-center">
-                                            <column.icon className={`mr-2 h-5 w-5 ${column.color}`} />
-                                            <CardTitle className={`text-lg p-0 ${column.color}`}>{column.title}</CardTitle>
-                                            <Badge variant="outline" className={`ml-2 ${column.color}`}>
-                                                {tasksByColumn[column.id]?.length || 0}
-                                            </Badge>
+                                            <div className={`p-2 rounded-md bg-white/50 dark:bg-black/20 mr-3`}>
+                                                <column.icon className={`h-5 w-5 ${column.color}`} />
+                                            </div>
+                                            <div>
+                                                <CardTitle className={`text-lg ${column.color}`}>{column.title}</CardTitle>
+                                                <Badge variant="secondary" className="mt-1">
+                                                    {tasksByColumn[column.id]?.length || 0} tarefas
+                                                </Badge>
+                                            </div>
                                         </div>
                                         <Button
                                             variant="ghost"
@@ -288,234 +429,251 @@ const Kanban = () => {
                                             className="h-8 w-8"
                                             onClick={() => toggleColumnCollapse(column.id)}
                                         >
-                                            {collapsedColumns[column.id] ? <ChevronDown size={16} className={column.color} /> : <ChevronUp size={16} className={column.color} />}
+                                            {collapsedColumns[column.id] ?
+                                                <ChevronDown size={16} className={column.color} /> :
+                                                <ChevronUp size={16} className={column.color} />
+                                            }
                                         </Button>
                                     </div>
                                 </CardHeader>
                                 {!collapsedColumns[column.id] && (
-                                    <CardContent className="flex-grow overflow-y-auto pt-2" style={{ maxHeight: 'calc(100vh - 250px)' }}>
-                                        <div className="space-y-2">
+                                    <CardContent className="flex-grow overflow-y-auto p-4" style={{ maxHeight: 'calc(100vh - 400px)' }}>
+                                        <div className="space-y-3">
                                             {tasksByColumn[column.id]?.length === 0 ? (
-                                                <div className="p-4 border border-dashed rounded-md text-center text-muted-foreground">
-                                                    Nenhuma tarefa nesta coluna
-                                                </div>
+                                                <motion.div
+                                                    initial={{ opacity: 0 }}
+                                                    animate={{ opacity: 1 }}
+                                                    className="p-8 border-2 border-dashed border-muted-foreground/20 rounded-lg text-center"
+                                                >
+                                                    <div className={`inline-flex p-3 rounded-full ${column.bgColor} mb-3`}>
+                                                        <column.icon className={`h-6 w-6 ${column.color}`} />
+                                                    </div>
+                                                    <p className="text-muted-foreground text-sm">Nenhuma tarefa nesta coluna</p>
+                                                </motion.div>
                                             ) : (
-                                                tasksByColumn[column.id]?.map(task => (
-                                                    <KanbanTaskCard
+                                                tasksByColumn[column.id]?.map((task, taskIndex) => (
+                                                    <motion.div
                                                         key={task.id}
-                                                        task={task}
-                                                        onEdit={() => openEditDialog(task)}
-                                                        onDelete={() => deleteTask(task.id)}
-                                                        onMove={(columnId) => moveTask(task.id, columnId)}
-                                                    />
+                                                        initial={{ opacity: 0, y: 10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        transition={{ duration: 0.3, delay: taskIndex * 0.05 }}
+                                                    >
+                                                        <KanbanTaskCard
+                                                            task={task}
+                                                            onEdit={() => openEditDialog(task)}
+                                                            onDelete={() => deleteTask(task.id)}
+                                                            onMove={(columnId) => moveTask(task.id, columnId)}
+                                                        />
+                                                    </motion.div>
                                                 ))
                                             )}
                                         </div>
                                         <Button
                                             variant="ghost"
-                                            className="w-full mt-3 border border-dashed text-muted-foreground"
+                                            className="w-full mt-4 border-2 border-dashed border-muted-foreground/20 text-muted-foreground hover:border-primary/50 hover:text-primary"
                                             onClick={() => {
                                                 resetNewTask();
                                                 setNewTask(prev => ({ ...prev, column: column.id }));
                                                 setIsAddDialogOpen(true);
                                             }}
                                         >
-                                            <Plus size={16} className="mr-2" /> Adicionar
+                                            <Plus size={16} className="mr-2" /> Adicionar Tarefa
                                         </Button>
                                     </CardContent>
                                 )}
                             </Card>
                         </motion.div>
                     ))}
-                </div>
-            </motion.div>
+                </motion.div>
 
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                <DialogContent className="sm:max-w-[500px] text-primary">
-                    <DialogHeader>
-                        <DialogTitle>Adicionar nova tarefa</DialogTitle>
-                        <DialogDescription>
-                            Preencha os detalhes da tarefa. Clique em salvar quando terminar.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                            <label htmlFor="title" className="text-sm font-medium">Título</label>
-                            <Input
-                                id="title"
-                                value={newTask.title}
-                                onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                                placeholder="Título da tarefa"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label htmlFor="description" className="text-sm font-medium">Descrição</label>
-                            <Textarea
-                                id="description"
-                                value={newTask.description}
-                                onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                                placeholder="Descreva a tarefa..."
-                                rows={3}
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
+                {/* ... keep existing code (dialogs) */}
+                <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                    <DialogContent className="sm:max-w-[500px] text-primary">
+                        <DialogHeader>
+                            <DialogTitle>Adicionar nova tarefa</DialogTitle>
+                            <DialogDescription>
+                                Preencha os detalhes da tarefa. Clique em salvar quando terminar.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
                             <div className="space-y-2">
-                                <label htmlFor="priority" className="text-sm font-medium">Prioridade</label>
-                                <Select
-                                    value={newTask.priority}
-                                    onValueChange={(value) => setNewTask({ ...newTask, priority: value as TaskPriority })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecione a prioridade" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="low">Baixa</SelectItem>
-                                        <SelectItem value="medium">Média</SelectItem>
-                                        <SelectItem value="high">Alta</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <label htmlFor="column" className="text-sm font-medium">Coluna</label>
-                                <Select
-                                    value={newTask.column}
-                                    onValueChange={(value) => setNewTask({ ...newTask, column: value as KanbanColumn })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecione a coluna" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {columnsConfig.map(column => (
-                                            <SelectItem key={column.id} value={column.id}>
-                                                {column.title}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <label htmlFor="dueDate" className="text-sm font-medium">Data de entrega (opcional)</label>
-                            <Input
-                                id="dueDate"
-                                type="date"
-                                value={newTask.dueDate}
-                                onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
-                            />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => {
-                            setIsAddDialogOpen(false);
-                            resetNewTask();
-                        }}>
-                            Cancelar
-                        </Button>
-                        <Button onClick={addTask}>
-                            <Save size={16} className="mr-2" /> Salvar
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                <DialogContent className="sm:max-w-[500px] text-primary">
-                    <DialogHeader>
-                        <DialogTitle>Editar tarefa</DialogTitle>
-                        <DialogDescription>
-                            Edite os detalhes da tarefa. Clique em salvar quando terminar.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                            <label htmlFor="edit-title" className="text-sm font-medium">Título</label>
-                            <Input
-                                id="edit-title"
-                                value={newTask.title}
-                                onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                                placeholder="Título da tarefa"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label htmlFor="edit-description" className="text-sm font-medium">Descrição</label>
-                            <Textarea
-                                id="edit-description"
-                                value={newTask.description}
-                                onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                                placeholder="Descreva a tarefa..."
-                                rows={3}
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label htmlFor="edit-priority" className="text-sm font-medium">Prioridade</label>
-                                <Select
-                                    value={newTask.priority}
-                                    onValueChange={(value) => setNewTask({ ...newTask, priority: value as TaskPriority })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecione a prioridade" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="low">Baixa</SelectItem>
-                                        <SelectItem value="medium">Média</SelectItem>
-                                        <SelectItem value="high">Alta</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <label htmlFor="edit-dueDate" className="text-sm font-medium">Data de entrega</label>
+                                <label htmlFor="title" className="text-sm font-medium">Título</label>
                                 <Input
-                                    id="edit-dueDate"
+                                    id="title"
+                                    value={newTask.title}
+                                    onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                                    placeholder="Título da tarefa"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="description" className="text-sm font-medium">Descrição</label>
+                                <Textarea
+                                    id="description"
+                                    value={newTask.description}
+                                    onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                                    placeholder="Descreva a tarefa..."
+                                    rows={3}
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label htmlFor="priority" className="text-sm font-medium">Prioridade</label>
+                                    <Select
+                                        value={newTask.priority}
+                                        onValueChange={(value) => setNewTask({ ...newTask, priority: value as TaskPriority })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecione a prioridade" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="low">Baixa</SelectItem>
+                                            <SelectItem value="medium">Média</SelectItem>
+                                            <SelectItem value="high">Alta</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="column" className="text-sm font-medium">Coluna</label>
+                                    <Select
+                                        value={newTask.column}
+                                        onValueChange={(value) => setNewTask({ ...newTask, column: value as KanbanColumn })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecione a coluna" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {columnsConfig.map(column => (
+                                                <SelectItem key={column.id} value={column.id}>
+                                                    {column.title}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="dueDate" className="text-sm font-medium">Data de entrega (opcional)</label>
+                                <Input
+                                    id="dueDate"
                                     type="date"
                                     value={newTask.dueDate}
                                     onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
                                 />
                             </div>
                         </div>
-                    </div>
-                    <DialogFooter>
-                        <div className="flex w-full justify-between">
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="outline" className="text-destructive border-destructive hover:bg-destructive/10">
-                                        <Trash2 size={16} className="mr-2" /> Excluir
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            Esta ação não pode ser desfeita. Esta tarefa será permanentemente excluída.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                        <AlertDialogAction
-                                            onClick={() => selectedTask && deleteTask(selectedTask.id)}
-                                            className="bg-destructive hover:bg-destructive/90"
-                                        >
-                                            Excluir
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => {
+                                setIsAddDialogOpen(false);
+                                resetNewTask();
+                            }}>
+                                Cancelar
+                            </Button>
+                            <Button onClick={addTask}>
+                                <Save size={16} className="mr-2" /> Salvar
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
-                            <div className="flex gap-2">
-                                <Button variant="outline" onClick={() => {
-                                    setIsEditDialogOpen(false);
-                                    setSelectedTask(null);
-                                }}>
-                                    Cancelar
-                                </Button>
-                                <Button onClick={updateTask}>
-                                    <Save size={16} className="mr-2" /> Salvar
-                                </Button>
+                <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                    <DialogContent className="sm:max-w-[500px] text-primary">
+                        <DialogHeader>
+                            <DialogTitle>Editar tarefa</DialogTitle>
+                            <DialogDescription>
+                                Edite os detalhes da tarefa. Clique em salvar quando terminar.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <label htmlFor="edit-title" className="text-sm font-medium">Título</label>
+                                <Input
+                                    id="edit-title"
+                                    value={newTask.title}
+                                    onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                                    placeholder="Título da tarefa"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="edit-description" className="text-sm font-medium">Descrição</label>
+                                <Textarea
+                                    id="edit-description"
+                                    value={newTask.description}
+                                    onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                                    placeholder="Descreva a tarefa..."
+                                    rows={3}
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label htmlFor="edit-priority" className="text-sm font-medium">Prioridade</label>
+                                    <Select
+                                        value={newTask.priority}
+                                        onValueChange={(value) => setNewTask({ ...newTask, priority: value as TaskPriority })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecione a prioridade" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="low">Baixa</SelectItem>
+                                            <SelectItem value="medium">Média</SelectItem>
+                                            <SelectItem value="high">Alta</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="edit-dueDate" className="text-sm font-medium">Data de entrega</label>
+                                    <Input
+                                        id="edit-dueDate"
+                                        type="date"
+                                        value={newTask.dueDate}
+                                        onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
+                                    />
+                                </div>
                             </div>
                         </div>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                        <DialogFooter>
+                            <div className="flex w-full justify-between">
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="outline" className="text-destructive border-destructive hover:bg-destructive/10">
+                                            <Trash2 size={16} className="mr-2" /> Excluir
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Esta ação não pode ser desfeita. Esta tarefa será permanentemente excluída.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                            <AlertDialogAction
+                                                onClick={() => selectedTask && deleteTask(selectedTask.id)}
+                                                className="bg-destructive hover:bg-destructive/90"
+                                            >
+                                                Excluir
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+
+                                <div className="flex gap-2">
+                                    <Button variant="outline" onClick={() => {
+                                        setIsEditDialogOpen(false);
+                                        setSelectedTask(null);
+                                    }}>
+                                        Cancelar
+                                    </Button>
+                                    <Button onClick={updateTask}>
+                                        <Save size={16} className="mr-2" /> Salvar
+                                    </Button>
+                                </div>
+                            </div>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            </div>
         </div>
     );
 };
@@ -541,21 +699,21 @@ const KanbanTaskCard = ({ task, onEdit, onDelete, onMove }: KanbanTaskCardProps)
 
     return (
         <motion.div
-            whileHover={{ scale: 1.01 }}
+            whileHover={{ scale: 1.02, y: -2 }}
             transition={{ duration: 0.2 }}
         >
-            <Card className={`hover:shadow-md transition-shadow cursor-pointer rounded-none ${isOverdue ? 'border-red-500' : ''}`} onClick={onEdit}>
-                <CardContent className="p-3">
-                    <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-medium line-clamp-2">{task.title}</h3>
+            <Card className={`hover:shadow-lg transition-all duration-200 cursor-pointer group ${isOverdue ? 'border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-950/20' : 'hover:border-primary/20'}`} onClick={onEdit}>
+                <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-3">
+                        <h3 className="font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">{task.title}</h3>
                         <div onClick={(e) => e.stopPropagation()}>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <MoreVertical size={16} />
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
+                                <DropdownMenuContent align="end" className="w-48">
                                     <DropdownMenuItem onClick={onEdit}>
                                         <Edit size={14} className="mr-2" /> Editar
                                     </DropdownMenuItem>
@@ -564,13 +722,13 @@ const KanbanTaskCard = ({ task, onEdit, onDelete, onMove }: KanbanTaskCardProps)
                                         <ArrowLeft size={14} className="mr-2" /> Mover para A Fazer
                                     </DropdownMenuItem>
                                     <DropdownMenuItem disabled={task.column === 'inProgress'} onClick={() => onMove('inProgress')}>
-                                        <ArrowLeft size={14} className="mr-2" /> Mover para Em Progresso
+                                        <Clock size={14} className="mr-2" /> Mover para Em Progresso
                                     </DropdownMenuItem>
                                     <DropdownMenuItem disabled={task.column === 'review'} onClick={() => onMove('review')}>
-                                        <ArrowLeft size={14} className="mr-2" /> Mover para Em Revisão
+                                        <Edit size={14} className="mr-2" /> Mover para Em Revisão
                                     </DropdownMenuItem>
                                     <DropdownMenuItem disabled={task.column === 'done'} onClick={() => onMove('done')}>
-                                        <ArrowLeft size={14} className="mr-2" /> Mover para Concluído
+                                        <Target size={14} className="mr-2" /> Mover para Concluído
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem
@@ -585,18 +743,18 @@ const KanbanTaskCard = ({ task, onEdit, onDelete, onMove }: KanbanTaskCardProps)
                     </div>
 
                     {task.description && (
-                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                             {task.description}
                         </p>
                     )}
 
                     <div className="flex justify-between items-center">
-                        <Badge variant="outline" className={`text-xs ${priorityConfig[task.priority].color}`}>
+                        <Badge variant="outline" className={`text-xs font-medium ${priorityConfig[task.priority].color}`}>
                             {priorityConfig[task.priority].label}
                         </Badge>
 
                         {task.dueDate && (
-                            <div className={`text-xs flex items-center ${isOverdue ? 'text-red-500' : 'text-muted-foreground'}`}>
+                            <div className={`text-xs flex items-center ${isOverdue ? 'text-red-600 font-medium' : 'text-muted-foreground'}`}>
                                 <Calendar size={12} className="mr-1" />
                                 {formatDate(task.dueDate)}
                             </div>
