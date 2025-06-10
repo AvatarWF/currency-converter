@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,23 +10,15 @@ import {
     TabsList,
     TabsTrigger
 } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
 import { Play, Pause, RotateCcw, Settings, Clock, Coffee, Brain } from "lucide-react";
-
-type TimerMode = "pomodoro" | "shortBreak" | "longBreak";
+import MusicPlayer from "@/components/MusicPlayer";
+import { useTimer } from "@/contexts/TimerContext";
 
 type TimerSettings = {
-    pomodoro: number; // minutes
-    shortBreak: number; // minutes
-    longBreak: number; // minutes
+    pomodoro: number;
+    shortBreak: number;
+    longBreak: number;
     autoStart: boolean;
-};
-
-const defaultSettings: TimerSettings = {
-    pomodoro: 25,
-    shortBreak: 5,
-    longBreak: 15,
-    autoStart: false,
 };
 
 const formatTime = (timeInSeconds: number): string => {
@@ -37,113 +28,25 @@ const formatTime = (timeInSeconds: number): string => {
 };
 
 const Pomodoro = () => {
-    const [activeTab, setActiveTab] = useState<TimerMode>("pomodoro");
-    const [isRunning, setIsRunning] = useState<boolean>(false);
-    const [timeRemaining, setTimeRemaining] = useState<number>(defaultSettings.pomodoro * 60);
-    const [settings, setSettings] = useState<TimerSettings>(() => {
-        const savedSettings = localStorage.getItem("pomodoroSettings");
-        return savedSettings ? JSON.parse(savedSettings) : defaultSettings;
-    });
+    const {
+        activeTab,
+        isRunning,
+        timeRemaining,
+        sessionsCompleted,
+        settings,
+        dailyStats,
+        startPauseTimer,
+        resetTimer,
+        changeMode,
+        updateSettings
+    } = useTimer();
+
     const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
     const [editableSettings, setEditableSettings] = useState<TimerSettings>(settings);
-    const [sessionsCompleted, setSessionsCompleted] = useState<number>(0);
-
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
-    const { toast } = useToast();
 
     useEffect(() => {
-        setTimeRemaining(settings[activeTab] * 60);
-        setIsRunning(false);
-
-        if (timerRef.current) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-        }
-
-        updateDocumentTitle(formatTime(settings[activeTab] * 60));
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [activeTab, settings]);
-
-    useEffect(() => {
-        if (isRunning) {
-            timerRef.current = setInterval(() => {
-                setTimeRemaining((prev) => {
-                    if (prev <= 1) {
-                        handleTimerComplete();
-                        return 0;
-                    }
-                    updateDocumentTitle(formatTime(prev - 1));
-                    return prev - 1;
-                });
-            }, 1000);
-        } else if (timerRef.current) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-        }
-
-        return () => {
-            if (timerRef.current) {
-                clearInterval(timerRef.current);
-            }
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isRunning]);
-
-    const updateDocumentTitle = (time: string) => {
-        document.title = `${time} - FlowHub Pomodoro`;
-    };
-
-    const handleTimerComplete = () => {
-        if (timerRef.current) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-        }
-        setIsRunning(false);
-
-        const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
-        audio.play();
-
-        if (activeTab === "pomodoro") {
-            setSessionsCompleted(prev => prev + 1);
-            toast({
-                title: "Pomodoro concluído!",
-                description: "Hora de fazer uma pausa.",
-            });
-
-            const nextMode = sessionsCompleted % 4 === 3 ? "longBreak" : "shortBreak";
-            setActiveTab(nextMode);
-
-            if (settings.autoStart) {
-                setTimeout(() => setIsRunning(true), 500);
-            }
-        } else {
-            toast({
-                title: "Pausa concluída!",
-                description: "Hora de voltar ao trabalho.",
-            });
-            setActiveTab("pomodoro");
-
-            if (settings.autoStart) {
-                setTimeout(() => setIsRunning(true), 500);
-            }
-        }
-    };
-
-    const handleStartPause = () => {
-        setIsRunning(!isRunning);
-    };
-
-    const handleReset = () => {
-        setTimeRemaining(settings[activeTab] * 60);
-        setIsRunning(false);
-        updateDocumentTitle(formatTime(settings[activeTab] * 60));
-
-        if (timerRef.current) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-        }
-    };
+        setEditableSettings(settings);
+    }, [settings]);
 
     const saveSettings = () => {
         const newSettings = {
@@ -153,15 +56,8 @@ const Pomodoro = () => {
             longBreak: Math.max(1, Math.min(60, editableSettings.longBreak)),
         };
 
-        setSettings(newSettings);
-        localStorage.setItem("pomodoroSettings", JSON.stringify(newSettings));
+        updateSettings(newSettings);
         setIsSettingsOpen(false);
-        setTimeRemaining(newSettings[activeTab] * 60);
-
-        toast({
-            title: "Configurações salvas",
-            description: "As configurações do Pomodoro foram atualizadas.",
-        });
     };
 
     const totalSeconds = settings[activeTab] * 60;
@@ -171,27 +67,30 @@ const Pomodoro = () => {
         switch (activeTab) {
             case "pomodoro":
                 return {
-                    gradient: "from-red-400 via-pink-500 to-purple-600",
-                    accent: "text-red-500",
-                    button: "bg-red-500 hover:bg-red-600",
-                    icon: "text-red-500",
-                    progress: "stroke-red-500"
+                    primary: "bg-gradient-to-br from-blue-500 to-blue-600",
+                    accent: "text-blue-400",
+                    button: "bg-blue-500 hover:bg-blue-600",
+                    icon: "text-blue-400",
+                    progress: "stroke-blue-400",
+                    glow: "shadow-blue-500/25"
                 };
             case "shortBreak":
                 return {
-                    gradient: "from-green-400 via-emerald-500 to-teal-600",
-                    accent: "text-green-500",
+                    primary: "bg-gradient-to-br from-green-500 to-green-600",
+                    accent: "text-green-400",
                     button: "bg-green-500 hover:bg-green-600",
-                    icon: "text-green-500",
-                    progress: "stroke-green-500"
+                    icon: "text-green-400",
+                    progress: "stroke-green-400",
+                    glow: "shadow-green-500/25"
                 };
             case "longBreak":
                 return {
-                    gradient: "from-blue-400 via-indigo-500 to-purple-600",
-                    accent: "text-blue-500",
-                    button: "bg-blue-500 hover:bg-blue-600",
-                    icon: "text-blue-500",
-                    progress: "stroke-blue-500"
+                    primary: "bg-gradient-to-br from-purple-500 to-purple-600",
+                    accent: "text-purple-400",
+                    button: "bg-purple-500 hover:bg-purple-600",
+                    icon: "text-purple-400",
+                    progress: "stroke-purple-400",
+                    glow: "shadow-purple-500/25"
                 };
         }
     };
@@ -199,23 +98,79 @@ const Pomodoro = () => {
     const colors = getThemeColors();
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4">
-            <div className="max-w-6xl mx-auto">
+        <div className="min-h-screen text-gray-100 p-6">
+            <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-8">
-                    <h1 className={`text-4xl md:text-5xl font-bold bg-gradient-to-r ${colors.gradient} bg-clip-text text-transparent mb-4`}>
+                    <h1 className="text-5xl font-bold text-primary mb-2">
                         Pomodoro Timer
                     </h1>
-                    <p className="text-lg text-muted-foreground">
+                    <p className="text-gray-400 text-lg">
                         Técnica comprovada para aumentar sua produtividade
                     </p>
                 </div>
 
-                <div className="grid lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                    <Card className="bg-gradient-to-br from-blue-500 to-blue-600 border-none text-white">
+                        <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-blue-100 text-sm">Sessões Hoje</p>
+                                    <p className="text-2xl font-bold">{dailyStats.sessions}</p>
+                                </div>
+                                <Brain className="h-8 w-8 text-blue-200" />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-gradient-to-br from-green-500 to-green-600 border-none text-white">
+                        <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-green-100 text-sm">Tempo Focado</p>
+                                    <p className="text-2xl font-bold">{dailyStats.totalFocusTime}min</p>
+                                </div>
+                                <div className="w-8 h-8 rounded-full bg-green-400 flex items-center justify-center">
+                                    <div className="w-4 h-4 rounded-full bg-white"></div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-gradient-to-br from-orange-500 to-orange-600 border-none text-white">
+                        <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-orange-100 text-sm">Status</p>
+                                    <p className="text-2xl font-bold">{isRunning ? "Ativo" : "Pausado"}</p>
+                                </div>
+                                <Clock className="h-8 w-8 text-orange-200" />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-gradient-to-br from-purple-500 to-purple-600 border-none text-white">
+                        <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-purple-100 text-sm">Modo Atual</p>
+                                    <p className="text-2xl font-bold">{activeTab === 'pomodoro' ? 'Foco' : 'Pausa'}</p>
+                                </div>
+                                <div className="w-8 h-8">
+                                    <svg viewBox="0 0 24 24" className="w-full h-full text-purple-200">
+                                        <path fill="currentColor" d="M16,21L12,19L8,21V7H16M16,5H8A2,2 0 0,0 6,7V21L12,18L18,21V7A2,2 0 0,0 16,5Z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <div className="grid lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">
-                        <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm shadow-xl border-0">
+                        <Card className="bg-gray-800/70 border-gray-400 dark:border-gray-700 backdrop-blur-sm">
                             <CardHeader className="pb-4">
                                 <div className="flex justify-between items-center">
-                                    <CardTitle className="flex items-center gap-2">
+                                    <CardTitle className="text-white flex items-center gap-2">
                                         <Clock className={colors.icon} size={24} />
                                         Timer Ativo
                                     </CardTitle>
@@ -223,7 +178,7 @@ const Pomodoro = () => {
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-                                        className="hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        className="text-gray-400 hover:text-white hover:bg-gray-700"
                                     >
                                         <Settings size={18} />
                                     </Button>
@@ -232,46 +187,46 @@ const Pomodoro = () => {
                             <CardContent>
                                 <Tabs
                                     value={activeTab}
-                                    onValueChange={(value) => setActiveTab(value as TimerMode)}
+                                    onValueChange={(value) => changeMode(value as any)}
                                     className="mb-8"
                                 >
-                                    <TabsList className="grid grid-cols-3 mb-8 bg-gray-100 dark:bg-gray-700">
+                                    <TabsList className="grid grid-cols-3 mb-8 bg-gray-700 border-gray-600">
                                         <TabsTrigger
                                             value="pomodoro"
-                                            className="data-[state=active]:bg-red-500 data-[state=active]:text-white flex items-center gap-2"
+                                            className="data-[state=active]:bg-blue-500 data-[state=active]:text-white text-gray-300 flex items-center gap-2"
                                         >
                                             <Brain size={16} />
                                             Foco
                                         </TabsTrigger>
                                         <TabsTrigger
                                             value="shortBreak"
-                                            className="data-[state=active]:bg-green-500 data-[state=active]:text-white flex items-center gap-2"
+                                            className="data-[state=active]:bg-green-500 data-[state=active]:text-white text-gray-300 flex items-center gap-2"
                                         >
                                             <Coffee size={16} />
-                                            Pausa
+                                            Pausa Curta
                                         </TabsTrigger>
                                         <TabsTrigger
                                             value="longBreak"
-                                            className="data-[state=active]:bg-blue-500 data-[state=active]:text-white flex items-center gap-2"
+                                            className="data-[state=active]:bg-purple-500 data-[state=active]:text-white text-gray-300 flex items-center gap-2"
                                         >
                                             <Coffee size={16} />
-                                            Descanso
+                                            Pausa Longa
                                         </TabsTrigger>
                                     </TabsList>
 
                                     <TabsContent value="pomodoro">
                                         <div className="text-center mb-4">
-                                            <p className="text-muted-foreground text-lg">🍅 Foque na sua tarefa principal</p>
+                                            <p className="text-gray-400 text-lg">🍅 Tempo de foco e concentração total</p>
                                         </div>
                                     </TabsContent>
                                     <TabsContent value="shortBreak">
                                         <div className="text-center mb-4">
-                                            <p className="text-muted-foreground text-lg">☕ Faça uma pausa rápida</p>
+                                            <p className="text-gray-400 text-lg">☕ Pausa rápida para relaxar</p>
                                         </div>
                                     </TabsContent>
                                     <TabsContent value="longBreak">
                                         <div className="text-center mb-4">
-                                            <p className="text-muted-foreground text-lg">🌟 Tempo para relaxar</p>
+                                            <p className="text-gray-400 text-lg">🌟 Pausa longa para recarregar</p>
                                         </div>
                                     </TabsContent>
                                 </Tabs>
@@ -279,7 +234,6 @@ const Pomodoro = () => {
                                 <div className="relative mb-8 flex justify-center">
                                     <div className="relative w-80 h-80">
                                         <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                                            {/* Background circle */}
                                             <circle
                                                 cx="50"
                                                 cy="50"
@@ -287,7 +241,7 @@ const Pomodoro = () => {
                                                 fill="none"
                                                 stroke="currentColor"
                                                 strokeWidth="2"
-                                                className="text-gray-200 dark:text-gray-600"
+                                                className="text-gray-600"
                                             />
                                             <circle
                                                 cx="50"
@@ -298,24 +252,25 @@ const Pomodoro = () => {
                                                 strokeDasharray={`${2 * Math.PI * 45}`}
                                                 strokeDashoffset={`${2 * Math.PI * 45 * (1 - progressPercent / 100)}`}
                                                 className={`${colors.progress} transition-all duration-1000`}
+                                                filter="drop-shadow(0 0 8px currentColor)"
                                             />
                                         </svg>
                                         <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center flex-col">
-                                          <span className={`text-6xl font-bold ${colors.accent} mb-2`}>
-                                            {formatTime(timeRemaining)}
-                                          </span>
-                                                                <span className="text-sm text-muted-foreground">
-                                            {activeTab === "pomodoro" ? "Trabalho" : "Pausa"}
-                                          </span>
+                                            <span className={`text-6xl font-bold ${colors.accent} mb-2`}>
+                                                {formatTime(timeRemaining)}
+                                            </span>
+                                            <span className="text-sm text-gray-400">
+                                                {activeTab === "pomodoro" ? "Trabalho" : "Pausa"}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="flex justify-center space-x-4">
                                     <Button
-                                        onClick={handleStartPause}
+                                        onClick={startPauseTimer}
                                         size="lg"
-                                        className={`w-40 ${colors.button} text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all`}
+                                        className={`w-40 ${colors.button} text-white font-semibold py-3 px-6 rounded-xl cursor-pointer shadow-lg ${colors.glow} shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105`}
                                     >
                                         {isRunning ? (
                                             <>
@@ -328,11 +283,11 @@ const Pomodoro = () => {
                                         )}
                                     </Button>
                                     <Button
-                                        onClick={handleReset}
+                                        onClick={resetTimer}
                                         variant="outline"
                                         size="lg"
                                         disabled={isRunning}
-                                        className="w-16 border-2 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                        className="w-16 bg-gray-700 border-gray-600 text-gray-300 cursor-pointer hover:bg-gray-700 hover:text-white"
                                     >
                                         <RotateCcw size={20} />
                                     </Button>
@@ -342,49 +297,57 @@ const Pomodoro = () => {
                     </div>
 
                     <div className="space-y-6">
-                        <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm shadow-xl border-0">
+                        <MusicPlayer />
+                        <Card className="bg-gray-800/90 border-gray-400 dark:border-gray-700 backdrop-blur-sm">
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Brain className="text-purple-500" size={20} />
-                                    Estatísticas
+                                <CardTitle className="text-white flex items-center gap-2">
+                                    <Brain className="text-purple-400" size={20} />
+                                    Estatísticas de Hoje
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-4">
-                                    <div className="text-center p-4 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg">
-                                        <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                                            {sessionsCompleted}
+                                    <div className="text-center p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg border border-purple-500/30">
+                                        <div className="text-3xl font-bold text-purple-400">
+                                            {dailyStats.sessions}
                                         </div>
-                                        <div className="text-sm text-muted-foreground">
+                                        <div className="text-sm text-gray-400">
                                             Sessões concluídas hoje
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-2 text-sm">
-                                        <div className="text-center p-2 bg-red-50 dark:bg-red-900/20 rounded">
-                                            <div className="font-semibold text-red-600">{settings.pomodoro}min</div>
-                                            <div className="text-xs text-muted-foreground">Foco</div>
+                                    <div className="text-center p-4 bg-gradient-to-r from-blue-500/20 to-green-500/20 rounded-lg border border-blue-500/30">
+                                        <div className="text-3xl font-bold text-blue-400">
+                                            {dailyStats.totalFocusTime}min
                                         </div>
-                                        <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded">
-                                            <div className="font-semibold text-green-600">{settings.shortBreak}min</div>
-                                            <div className="text-xs text-muted-foreground">Pausa</div>
+                                        <div className="text-sm text-gray-400">
+                                            Tempo total focado
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2 text-sm">
+                                        <div className="text-center p-2 bg-blue-500/20 rounded border border-blue-500/30">
+                                            <div className="font-semibold text-blue-400">{settings.pomodoro}min</div>
+                                            <div className="text-xs text-gray-400">Foco</div>
+                                        </div>
+                                        <div className="text-center p-2 bg-green-500/20 rounded border border-green-500/30">
+                                            <div className="font-semibold text-green-400">{settings.shortBreak}min</div>
+                                            <div className="text-xs text-gray-400">Pausa</div>
                                         </div>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
-
                         {isSettingsOpen && (
-                            <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm shadow-xl border-0">
+                            <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm animate-fade-in">
                                 <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                        <Settings className="text-blue-500" size={20} />
+                                    <CardTitle className="text-white flex items-center gap-2">
+                                        <Settings className="text-blue-400" size={20} />
                                         Configurações
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-4">
                                         <div>
-                                            <Label htmlFor="pomodoro" className="text-sm font-medium">
+                                            <Label htmlFor="pomodoro" className="text-sm font-medium text-gray-300">
                                                 Duração do Pomodoro (min)
                                             </Label>
                                             <Input
@@ -397,11 +360,11 @@ const Pomodoro = () => {
                                                     ...editableSettings,
                                                     pomodoro: Number(e.target.value)
                                                 })}
-                                                className="mt-1"
+                                                className="mt-1 bg-gray-700 border-gray-600 text-white"
                                             />
                                         </div>
                                         <div>
-                                            <Label htmlFor="shortBreak" className="text-sm font-medium">
+                                            <Label htmlFor="shortBreak" className="text-sm font-medium text-gray-300">
                                                 Duração da Pausa Curta (min)
                                             </Label>
                                             <Input
@@ -414,11 +377,11 @@ const Pomodoro = () => {
                                                     ...editableSettings,
                                                     shortBreak: Number(e.target.value)
                                                 })}
-                                                className="mt-1"
+                                                className="mt-1 bg-gray-700 border-gray-600 text-white"
                                             />
                                         </div>
                                         <div>
-                                            <Label htmlFor="longBreak" className="text-sm font-medium">
+                                            <Label htmlFor="longBreak" className="text-sm font-medium text-gray-300">
                                                 Duração da Pausa Longa (min)
                                             </Label>
                                             <Input
@@ -431,7 +394,7 @@ const Pomodoro = () => {
                                                     ...editableSettings,
                                                     longBreak: Number(e.target.value)
                                                 })}
-                                                className="mt-1"
+                                                className="mt-1 bg-gray-700 border-gray-600 text-white"
                                             />
                                         </div>
                                         <div className="flex items-center space-x-2">
@@ -443,7 +406,7 @@ const Pomodoro = () => {
                                                     autoStart: checked === true
                                                 })}
                                             />
-                                            <Label htmlFor="autoStart" className="text-sm">
+                                            <Label htmlFor="autoStart" className="text-sm text-gray-300">
                                                 Iniciar automaticamente
                                             </Label>
                                         </div>
@@ -452,6 +415,7 @@ const Pomodoro = () => {
                                                 variant="outline"
                                                 onClick={() => setIsSettingsOpen(false)}
                                                 size="sm"
+                                                className="border-gray-600 text-gray-300 hover:bg-gray-700"
                                             >
                                                 Cancelar
                                             </Button>

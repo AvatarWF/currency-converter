@@ -238,412 +238,499 @@ const YoutubePlayer = () => {
     };
 
     return (
-        <div className="container mx-auto max-w-4xl">
-            <motion.h1
-                className="text-3xl font-bold mb-6"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-            >
-                Player do YouTube
-            </motion.h1>
+        <div className="min-h-screen bg-background">
+            <div className="container mx-auto max-w-7xl px-4 py-8">
+                {/* Header */}
+                <motion.div
+                    className="text-center mb-12"
+                    initial={{ opacity: 0, y: -30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8 }}
+                >
+                    <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary via-accent-foreground to-primary bg-clip-text text-transparent mb-4">
+                        YouTube Player
+                    </h1>
+                    <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                        Descubra e reproduza vídeos do YouTube com uma experiência moderna e intuitiva
+                    </p>
+                </motion.div>
 
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-            >
-                <Card className="mb-6">
-                    <CardHeader>
-                        <CardTitle>Reprodutor de vídeos</CardTitle>
-                        <CardDescription>
-                            Cole um link do YouTube ou pesquise vídeos para assistir
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <form onSubmit={handleUrlSubmit} className="flex gap-2 mb-4">
-                            <Input
-                                placeholder="Cole um link do YouTube (ex: https://youtube.com/watch?v=...)"
-                                value={videoUrl}
-                                onChange={(e) => setVideoUrl(e.target.value)}
-                                className="flex-1"
-                            />
-                            <Button type="submit">Reproduzir</Button>
-                        </form>
-
-                        <div className="flex gap-2">
-                            <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                {/* Search Section */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                    className="mb-8"
+                >
+                    <Card className="border-border backdrop-blur-sm">
+                        <CardHeader className="pb-4">
+                            <CardTitle className="text-foreground text-2xl">Reprodutor de Vídeos</CardTitle>
+                            <CardDescription className="text-muted-foreground">
+                                Cole um link do YouTube ou pesquise vídeos para assistir
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <form onSubmit={handleUrlSubmit} className="flex gap-3">
                                 <Input
-                                    placeholder="Pesquisar vídeos..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-10"
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            handleSearch();
-                                        }
-                                    }}
+                                    placeholder="Cole um link do YouTube (ex: https://youtube.com/watch?v=...)"
+                                    value={videoUrl}
+                                    onChange={(e) => setVideoUrl(e.target.value)}
+                                    className="flex-1 bg-background border-input text-foreground placeholder:text-muted-foreground focus:border-ring"
                                 />
-                            </div>
-                            <Button onClick={handleSearch} variant="outline">Pesquisar</Button>
-                        </div>
-                    </CardContent>
-                </Card>
-            </motion.div>
+                                <Button
+                                    type="submit"
+                                    className="bg-primary hover:bg-primary/90 text-primary-foreground px-8"
+                                >
+                                    <Play className="w-4 h-4 mr-2" />
+                                    Reproduzir
+                                </Button>
+                            </form>
 
-            <div className="grid grid-cols-1 gap-6">
+                            <div className="flex gap-3">
+                                <div className="relative flex-1">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                                    <Input
+                                        placeholder="Pesquisar vídeos..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="pl-10 bg-background border-input text-foreground placeholder:text-muted-foreground focus:border-ring"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                handleSearch();
+                                            }
+                                        }}
+                                    />
+                                </div>
+                                <Button
+                                    onClick={handleSearch}
+                                    variant="outline"
+                                    className="border-border text-foreground hover:bg-accent hover:text-accent-foreground"
+                                >
+                                    <Search className="w-4 h-4 mr-2" />
+                                    Pesquisar
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </motion.div>
+
                 {/* Video Player */}
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
+                    transition={{ duration: 0.6, delay: 0.3 }}
+                    className="mb-8"
                 >
                     {videoId ? (
-                        <div className="aspect-video relative overflow-hidden rounded-lg border bg-card">
-                            <iframe
-                                ref={iframeRef}
-                                width="100%"
-                                height="100%"
-                                src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
-                                title="YouTube video player"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                            ></iframe>
-                        </div>
-                    ) : (
-                        <div className="aspect-video flex items-center justify-center rounded-lg border bg-card">
-                            <div className="text-center">
-                                <Youtube size={48} className="mx-auto text-muted-foreground opacity-20 mb-4" />
-                                <p className="text-muted-foreground">
-                                    Nenhum vídeo carregado. Cole um link do YouTube ou pesquise vídeos acima.
-                                </p>
+                        <Card className="border-border backdrop-blur-sm overflow-hidden">
+                            <div className="aspect-video relative">
+                                <iframe
+                                    ref={iframeRef}
+                                    width="100%"
+                                    height="100%"
+                                    src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+                                    title="YouTube video player"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                    className="rounded-lg"
+                                ></iframe>
                             </div>
-                        </div>
+                        </Card>
+                    ) : (
+                        <Card className="border-border backdrop-blur-sm">
+                            <div className="aspect-video flex items-center justify-center">
+                                <div className="text-center">
+                                    <div className="w-24 h-24 mx-auto mb-6 bg-muted rounded-full flex items-center justify-center">
+                                        <Youtube size={48} className="text-muted-foreground" />
+                                    </div>
+                                    <p className="text-muted-foreground text-lg">
+                                        Nenhum vídeo carregado. Cole um link do YouTube ou pesquise vídeos acima.
+                                    </p>
+                                </div>
+                            </div>
+                        </Card>
                     )}
                 </motion.div>
 
-                {/* Search Results */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
-                >
-                    <Collapsible
-                        open={isSearchOpen}
-                        onOpenChange={setIsSearchOpen}
-                        className="mb-6"
+                {/* Categories Navigation */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.4 }}
                     >
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-xl font-semibold">Resultados da Pesquisa</h2>
-                            <CollapsibleTrigger asChild>
-                                <Button variant="ghost" size="sm">
-                                    {isSearchOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                                </Button>
-                            </CollapsibleTrigger>
-                        </div>
-
-                        <CollapsibleContent className="mt-4">
-                            {searchResults.length === 0 ? (
-                                <Card>
-                                    <CardContent className="text-center p-6 text-muted-foreground">
-                                        Nenhum resultado encontrado. Tente outros termos de pesquisa.
-                                    </CardContent>
-                                </Card>
-                            ) : (
-                                <div className="space-y-4">
-                                    {searchResults.map((video) => (
-                                        <Card key={video.id} className="overflow-hidden">
-                                            <div className="grid grid-cols-[120px,1fr] sm:grid-cols-[180px,1fr]">
-                                                <div
-                                                    className="cursor-pointer"
-                                                    onClick={() => playVideo(video.id, video.title)}
-                                                >
-                                                    <div className="relative h-full">
-                                                        <img
-                                                            src={video.thumbnailUrl}
-                                                            alt={video.title}
-                                                            className="object-cover h-full w-full"
-                                                        />
-                                                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity">
-                                                            <Play size={36} className="text-white" />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="p-4">
-                                                    <h3
-                                                        className="font-medium line-clamp-2 hover:text-primary cursor-pointer"
-                                                        onClick={() => playVideo(video.id, video.title)}
-                                                    >
-                                                        {video.title}
-                                                    </h3>
-                                                    <p className="text-sm text-muted-foreground mt-1">
-                                                        {video.channelTitle}
-                                                    </p>
-                                                    <div className="flex items-center justify-between mt-2">
-                                                        <div className="flex items-center text-xs text-muted-foreground">
-                                                            <Clock size={14} className="mr-1" />
-                                                            {formatDate(video.publishedAt)}
-                                                        </div>
-                                                        <div className="flex gap-2">
-                                                            <Button
-                                                                variant={savedVideos.some(v => v.id === video.id) ? "default" : "outline"}
-                                                                size="sm"
-                                                                className="h-8"
-                                                                onClick={() => toggleSaveVideo(video)}
-                                                            >
-                                                                <Heart size={14} className="mr-1" />
-                                                                {savedVideos.some(v => v.id === video.id) ? "Salvo" : "Salvar"}
-                                                            </Button>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                className="h-8"
-                                                                asChild
-                                                            >
-                                                                <a
-                                                                    href={`https://www.youtube.com/watch?v=${video.id}`}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                >
-                                                                    <ExternalLink size={14} className="mr-1" />
-                                                                    YouTube
-                                                                </a>
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </Card>
-                                    ))}
+                        <Button
+                            onClick={() => setIsSearchOpen(!isSearchOpen)}
+                            variant="ghost"
+                            className="w-full h-auto p-6 bg-card border border-border hover:bg-accent hover:border-primary/50 transition-all group"
+                        >
+                            <div className="flex items-center justify-between w-full">
+                                <div className="flex items-center space-x-3">
+                                    <div className="p-2 bg-primary/20 rounded-lg group-hover:bg-primary/30 transition-colors">
+                                        <Search className="w-5 h-5 text-primary" />
+                                    </div>
+                                    <div className="text-left">
+                                        <h3 className="text-foreground font-medium">Resultados da Pesquisa</h3>
+                                        <p className="text-muted-foreground text-sm">{searchResults.length} vídeos encontrados</p>
+                                    </div>
                                 </div>
-                            )}
-                        </CollapsibleContent>
-                    </Collapsible>
-                </motion.div>
+                                {isSearchOpen ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
+                            </div>
+                        </Button>
+                    </motion.div>
+
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.5 }}
+                    >
+                        <Button
+                            onClick={() => setIsFavoritesOpen(!isFavoritesOpen)}
+                            variant="ghost"
+                            className="w-full h-auto p-6 bg-card border border-border hover:bg-accent hover:border-yellow-500/50 transition-all group"
+                        >
+                            <div className="flex items-center justify-between w-full">
+                                <div className="flex items-center space-x-3">
+                                    <div className="p-2 bg-yellow-500/20 rounded-lg group-hover:bg-yellow-500/30 transition-colors">
+                                        <Star className="w-5 h-5 text-yellow-500" />
+                                    </div>
+                                    <div className="text-left">
+                                        <h3 className="text-foreground font-medium">Vídeos Favoritos</h3>
+                                        <p className="text-muted-foreground text-sm">{savedVideos.length} vídeos salvos</p>
+                                    </div>
+                                </div>
+                                {isFavoritesOpen ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
+                            </div>
+                        </Button>
+                    </motion.div>
+
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.6 }}
+                    >
+                        <Button
+                            onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+                            variant="ghost"
+                            className="w-full h-auto p-6 bg-card border border-border hover:bg-accent hover:border-purple-500/50 transition-all group"
+                        >
+                            <div className="flex items-center justify-between w-full">
+                                <div className="flex items-center space-x-3">
+                                    <div className="p-2 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-colors">
+                                        <History className="w-5 h-5 text-purple-500" />
+                                    </div>
+                                    <div className="text-left">
+                                        <h3 className="text-foreground font-medium">Histórico</h3>
+                                        <p className="text-muted-foreground text-sm">{watchHistory.length} vídeos assistidos</p>
+                                    </div>
+                                </div>
+                                {isHistoryOpen ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
+                            </div>
+                        </Button>
+                    </motion.div>
+                </div>
+
+                {/* Search Results */}
+                <AnimatePresence>
+                    {isSearchOpen && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.4 }}
+                            className="mb-8"
+                        >
+                            <Card className="border-border backdrop-blur-sm">
+                                <CardHeader>
+                                    <div className="flex items-center justify-between">
+                                        <CardTitle className="text-foreground flex items-center">
+                                            <Search className="w-5 h-5 mr-2 text-primary" />
+                                            Resultados da Pesquisa
+                                        </CardTitle>
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    {searchResults.length === 0 ? (
+                                        <div className="text-center py-12">
+                                            <Search className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                                            <p className="text-muted-foreground">Nenhum resultado encontrado. Tente outros termos de pesquisa.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                            {searchResults.map((video, index) => (
+                                                <motion.div
+                                                    key={video.id}
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                                                >
+                                                    <Card className="bg-card border-border overflow-hidden hover:bg-accent/50 transition-all group cursor-pointer">
+                                                        <div className="relative">
+                                                            <img
+                                                                src={video.thumbnailUrl}
+                                                                alt={video.title}
+                                                                className="w-full aspect-video object-cover"
+                                                            />
+                                                            <div
+                                                                className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                                                onClick={() => playVideo(video.id, video.title)}
+                                                            >
+                                                                <div className="p-3 bg-white/20 rounded-full backdrop-blur-sm">
+                                                                    <Play className="w-8 h-8 text-white" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <CardContent className="p-4">
+                                                            <h3
+                                                                className="font-medium text-foreground line-clamp-2 hover:text-primary transition-colors cursor-pointer mb-2"
+                                                                onClick={() => playVideo(video.id, video.title)}
+                                                            >
+                                                                {video.title}
+                                                            </h3>
+                                                            <p className="text-sm text-muted-foreground mb-3">{video.channelTitle}</p>
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex items-center text-xs text-muted-foreground">
+                                                                    <Clock className="w-3 h-3 mr-1" />
+                                                                    {formatDate(video.publishedAt)}
+                                                                </div>
+                                                                <div className="flex gap-2">
+                                                                    <Button
+                                                                        variant={savedVideos.some(v => v.id === video.id) ? "default" : "outline"}
+                                                                        size="sm"
+                                                                        className="h-8 px-3"
+                                                                        onClick={() => toggleSaveVideo(video)}
+                                                                    >
+                                                                        <Heart className="w-3 h-3 mr-1" />
+                                                                        {savedVideos.some(v => v.id === video.id) ? "Salvo" : "Salvar"}
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+                                                </motion.div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* Favorites */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.4 }}
-                >
-                    <Collapsible
-                        open={isFavoritesOpen}
-                        onOpenChange={setIsFavoritesOpen}
-                        className="mb-6"
-                    >
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-xl font-semibold flex items-center">
-                                <Star size={18} className="text-yellow-500 mr-2" />
-                                Vídeos Favoritos
-                            </h2>
-                            <div className="flex gap-2">
-                                {savedVideos.length > 0 && (
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                <Trash2 size={14} />
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Limpar favoritos</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    Tem certeza que deseja remover todos os vídeos favoritos?
-                                                    Esta ação não pode ser desfeita.
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                <AlertDialogAction onClick={clearSavedVideos}>Limpar</AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                )}
-                                <CollapsibleTrigger asChild>
-                                    <Button variant="ghost" size="sm">
-                                        {isFavoritesOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                                    </Button>
-                                </CollapsibleTrigger>
-                            </div>
-                        </div>
-
-                        <CollapsibleContent className="mt-4">
-                            {savedVideos.length === 0 ? (
-                                <Card>
-                                    <CardContent className="text-center p-6 text-muted-foreground">
-                                        <Star size={36} className="mx-auto opacity-20 mb-3" />
-                                        Você não tem vídeos favoritos ainda.
-                                        Use o botão "Salvar" nos resultados da pesquisa.
-                                    </CardContent>
-                                </Card>
-                            ) : (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                                    <AnimatePresence>
-                                        {savedVideos.map((video) => (
-                                            <motion.div
-                                                key={video.id}
-                                                initial={{ opacity: 0, scale: 0.8 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.2 } }}
-                                                layout
-                                            >
-                                                <Card className="overflow-hidden h-full flex flex-col">
-                                                    <div
-                                                        className="cursor-pointer relative"
-                                                        onClick={() => playVideo(video.id, video.title)}
+                <AnimatePresence>
+                    {isFavoritesOpen && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.4 }}
+                            className="mb-8"
+                        >
+                            <Card className="border-border backdrop-blur-sm">
+                                <CardHeader>
+                                    <div className="flex items-center justify-between">
+                                        <CardTitle className="text-foreground flex items-center">
+                                            <Star className="w-5 h-5 mr-2 text-yellow-500" />
+                                            Vídeos Favoritos
+                                        </CardTitle>
+                                        {savedVideos.length > 0 && (
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                                                        <Trash2 className="w-4 h-4 mr-1" />
+                                                        Limpar
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent className="bg-card border-border">
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle className="text-foreground">Limpar favoritos</AlertDialogTitle>
+                                                        <AlertDialogDescription className="text-muted-foreground">
+                                                            Tem certeza que deseja remover todos os vídeos favoritos?
+                                                            Esta ação não pode ser desfeita.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel className="bg-secondary text-secondary-foreground border-border">Cancelar</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={clearSavedVideos} className="bg-destructive hover:bg-destructive/90">Limpar</AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        )}
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    {savedVideos.length === 0 ? (
+                                        <div className="text-center py-12">
+                                            <Star className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                                            <p className="text-muted-foreground mb-2">Você não tem vídeos favoritos ainda.</p>
+                                            <p className="text-muted-foreground/75 text-sm">Use o botão "Salvar" nos resultados da pesquisa.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                            <AnimatePresence>
+                                                {savedVideos.map((video, index) => (
+                                                    <motion.div
+                                                        key={video.id}
+                                                        initial={{ opacity: 0, scale: 0.8 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        exit={{ opacity: 0, scale: 0.8 }}
+                                                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                                                        layout
                                                     >
-                                                        <img
-                                                            src={video.thumbnailUrl}
-                                                            alt={video.title}
-                                                            className="w-full aspect-video object-cover"
-                                                        />
-                                                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity">
-                                                            <Play size={36} className="text-white" />
-                                                        </div>
-                                                    </div>
-                                                    <div className="p-3 flex-grow">
-                                                        <h3
-                                                            className="font-medium line-clamp-2 hover:text-primary cursor-pointer"
-                                                            onClick={() => playVideo(video.id, video.title)}
-                                                        >
-                                                            {video.title}
-                                                        </h3>
-                                                        <p className="text-xs text-muted-foreground mt-1">
-                                                            {video.channelTitle}
-                                                        </p>
-                                                    </div>
-                                                    <div className="p-3 pt-0 mt-auto">
-                                                        <div className="flex justify-between items-center">
-                                                            <Badge variant="secondary" className="text-xs">Favorito</Badge>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="h-7 w-7 text-destructive"
-                                                                onClick={() => toggleSaveVideo({
-                                                                    id: video.id,
-                                                                    title: video.title,
-                                                                    channelTitle: video.channelTitle,
-                                                                    thumbnailUrl: video.thumbnailUrl,
-                                                                    publishedAt: video.savedAt
-                                                                })}
-                                                            >
-                                                                <X size={14} />
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                </Card>
-                                            </motion.div>
-                                        ))}
-                                    </AnimatePresence>
-                                </div>
-                            )}
-                        </CollapsibleContent>
-                    </Collapsible>
-                </motion.div>
+                                                        <Card className="bg-card border-border overflow-hidden hover:bg-accent/50 transition-all group">
+                                                            <div className="relative">
+                                                                <img
+                                                                    src={video.thumbnailUrl}
+                                                                    alt={video.title}
+                                                                    className="w-full aspect-video object-cover"
+                                                                />
+                                                                <div
+                                                                    className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                                                                    onClick={() => playVideo(video.id, video.title)}
+                                                                >
+                                                                    <div className="p-3 bg-white/20 rounded-full backdrop-blur-sm">
+                                                                        <Play className="w-6 h-6 text-white" />
+                                                                    </div>
+                                                                </div>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="absolute top-2 right-2 h-8 w-8 p-0 bg-black/50 hover:bg-destructive text-white opacity-0 group-hover:opacity-100 transition-all"
+                                                                    onClick={() => toggleSaveVideo({
+                                                                        id: video.id,
+                                                                        title: video.title,
+                                                                        channelTitle: video.channelTitle,
+                                                                        thumbnailUrl: video.thumbnailUrl,
+                                                                        publishedAt: video.savedAt
+                                                                    })}
+                                                                >
+                                                                    <X className="w-4 h-4" />
+                                                                </Button>
+                                                            </div>
+                                                            <CardContent className="p-4">
+                                                                <h3
+                                                                    className="font-medium text-foreground line-clamp-2 hover:text-primary transition-colors cursor-pointer mb-2"
+                                                                    onClick={() => playVideo(video.id, video.title)}
+                                                                >
+                                                                    {video.title}
+                                                                </h3>
+                                                                <p className="text-sm text-muted-foreground mb-3">{video.channelTitle}</p>
+                                                                <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30">
+                                                                    <Star className="w-3 h-3 mr-1" />
+                                                                    Favorito
+                                                                </Badge>
+                                                            </CardContent>
+                                                        </Card>
+                                                    </motion.div>
+                                                ))}
+                                            </AnimatePresence>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
-                {/* Watch History */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.5 }}
-                >
-                    <Collapsible
-                        open={isHistoryOpen}
-                        onOpenChange={setIsHistoryOpen}
-                        className="mb-6"
-                    >
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-xl font-semibold flex items-center">
-                                <History size={18} className="mr-2" />
-                                Histórico de Reprodução
-                            </h2>
-                            <div className="flex gap-2">
-                                {watchHistory.length > 0 && (
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                <Trash2 size={14} />
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Limpar histórico</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    Tem certeza que deseja limpar todo o histórico de reprodução?
-                                                    Esta ação não pode ser desfeita.
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                <AlertDialogAction onClick={clearHistory}>Limpar</AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                )}
-                                <CollapsibleTrigger asChild>
-                                    <Button variant="ghost" size="sm">
-                                        {isHistoryOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                                    </Button>
-                                </CollapsibleTrigger>
-                            </div>
-                        </div>
-
-                        <CollapsibleContent className="mt-4">
-                            {watchHistory.length === 0 ? (
-                                <Card>
-                                    <CardContent className="text-center p-6 text-muted-foreground">
-                                        <Clock size={36} className="mx-auto opacity-20 mb-3" />
-                                        Seu histórico de reprodução está vazio.
-                                        Reproduza alguns vídeos para ver seu histórico aqui.
-                                    </CardContent>
-                                </Card>
-                            ) : (
-                                <Card>
-                                    <CardContent className="p-3">
-                                        <ul className="divide-y">
-                                            {watchHistory.map((item) => (
-                                                <li
+                <AnimatePresence>
+                    {isHistoryOpen && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.4 }}
+                            className="mb-8"
+                        >
+                            <Card className="border-border backdrop-blur-sm">
+                                <CardHeader>
+                                    <div className="flex items-center justify-between">
+                                        <CardTitle className="text-foreground flex items-center">
+                                            <History className="w-5 h-5 mr-2 text-purple-500" />
+                                            Histórico de Reprodução
+                                        </CardTitle>
+                                        {watchHistory.length > 0 && (
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                                                        <Trash2 className="w-4 h-4 mr-1" />
+                                                        Limpar
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent className="bg-card border-border">
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle className="text-foreground">Limpar histórico</AlertDialogTitle>
+                                                        <AlertDialogDescription className="text-muted-foreground">
+                                                            Tem certeza que deseja limpar todo o histórico de reprodução?
+                                                            Esta ação não pode ser desfeita.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel className="bg-secondary text-secondary-foreground border-border">Cancelar</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={clearHistory} className="bg-destructive hover:bg-destructive/90">Limpar</AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        )}
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    {watchHistory.length === 0 ? (
+                                        <div className="text-center py-12">
+                                            <Clock className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                                            <p className="text-muted-foreground mb-2">Seu histórico de reprodução está vazio.</p>
+                                            <p className="text-muted-foreground/75 text-sm">Reproduza alguns vídeos para ver seu histórico aqui.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {watchHistory.map((item, index) => (
+                                                <motion.div
                                                     key={`${item.id}-${item.watchedAt}`}
-                                                    className="py-2 flex justify-between items-center hover:bg-accent/20 rounded-md px-2 transition-colors"
+                                                    initial={{ opacity: 0, x: -20 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                                                    className="flex items-center justify-between p-4 bg-muted/50 rounded-lg hover:bg-accent/50 transition-all group cursor-pointer"
+                                                    onClick={() => playVideo(item.id, item.title)}
                                                 >
-                                                    <div
-                                                        className="flex-1 cursor-pointer truncate"
-                                                        onClick={() => playVideo(item.id, item.title)}
-                                                    >
-                                                        <div className="flex items-center">
-                                                            <Play size={14} className="mr-2 flex-shrink-0" />
-                                                            <span className="truncate">{item.title}</span>
+                                                    <div className="flex items-center flex-1 min-w-0">
+                                                        <div className="p-2 bg-purple-500/20 rounded-lg mr-3 group-hover:bg-purple-500/30 transition-colors">
+                                                            <Play className="w-4 h-4 text-purple-500" />
                                                         </div>
-                                                        <div className="text-xs text-muted-foreground mt-1 flex items-center">
-                                                            <Clock size={12} className="mr-1" />
-                                                            {formatDate(item.watchedAt)}
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className="text-foreground font-medium truncate group-hover:text-primary transition-colors">
+                                                                {item.title}
+                                                            </h4>
+                                                            <div className="flex items-center text-sm text-muted-foreground mt-1">
+                                                                <Clock className="w-3 h-3 mr-1" />
+                                                                {formatDate(item.watchedAt)}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
                                                         asChild
-                                                        className="ml-2"
+                                                        className="ml-3 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        onClick={(e) => e.stopPropagation()}
                                                     >
                                                         <a
                                                             href={`https://www.youtube.com/watch?v=${item.id}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
+                                                            className="text-muted-foreground hover:text-foreground"
                                                         >
-                                                            <ExternalLink size={14} />
+                                                            <ExternalLink className="w-4 h-4" />
                                                         </a>
                                                     </Button>
-                                                </li>
+                                                </motion.div>
                                             ))}
-                                        </ul>
-                                    </CardContent>
-                                </Card>
-                            )}
-                        </CollapsibleContent>
-                    </Collapsible>
-                </motion.div>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );

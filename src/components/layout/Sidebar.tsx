@@ -26,14 +26,16 @@ import {
     Coffee,
     Newspaper,
     Bot,
-    CloudSun,
     DollarSign,
     Scroll,
     Youtube,
-    Trello
+    Trello,
+    ChevronDown,
+    ChevronRight
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { WeatherWidget } from "../WeatherWidget";
 
 type NavItem = {
     name: string;
@@ -48,19 +50,22 @@ const navItems: NavItem[] = [
     { name: "Kanban", icon: Trello, path: "/kanban", category: "productivity" },
     { name: "Pomodoro", icon: Clock, path: "/pomodoro", category: "productivity" },
     { name: "Notepad", icon: Scroll, path: "/notepad", category: "productivity" },
-    { name: "Lo-Fi Music", icon: Music, path: "/lofi", category: "entertainment" },
-    { name: "YouTube Player", icon: Youtube, path: "/youtube-player", category: "entertainment" },
-    { name: "Weather", icon: CloudSun, path: "/weather", category: "utilities" },
-    { name: "Currency Converter", icon: DollarSign, path: "/currency-converter", category: "utilities" },
     { name: "Water Reminder", icon: Droplet, path: "/water-reminder", category: "productivity" },
     { name: "Internet Search", icon: Globe, path: "/internet-search", category: "productivity" },
-    { name: "Tech News", icon: Newspaper, path: "/tech-news", category: "information" },
+
+    { name: "Lo-Fi Music", icon: Music, path: "/lofi", category: "entertainment" },
+    { name: "YouTube Player", icon: Youtube, path: "/youtube-player", category: "entertainment" },
+
+    { name: "Currency Converter", icon: DollarSign, path: "/currency-converter", category: "utilities" },
+    { name: "Tech News", icon: Newspaper, path: "/tech-news", category: "utilities" },
+
     { name: "AI Tools", icon: Bot, path: "/ai-tools", category: "development" },
     { name: "Deploy Checklist", icon: CheckSquare, path: "/deploy-checklist", category: "development" },
     { name: "Code Snippets", icon: FileText, path: "/code-snippets", category: "development" },
     { name: "Quick Search", icon: Search, path: "/search", category: "development" },
     { name: "Fake Data", icon: Database, path: "/fake-data", category: "development" },
     { name: "JSON Formatter", icon: FileJson, path: "/json-formatter", category: "development" },
+
     { name: "Apoie o Projeto", icon: Coffee, path: "/donation" },
 ];
 
@@ -72,7 +77,12 @@ interface SidebarProps {
 export function Sidebar({ theme, toggleTheme }: SidebarProps) {
     const [collapsed, setCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
-    const [showAllItems, setShowAllItems] = useState(false);
+    const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
+        productivity: true,
+        entertainment: false,
+        utilities: false,
+        development: false,
+    });
     const location = useLocation();
     const isMobile = useIsMobile();
 
@@ -84,12 +94,18 @@ export function Sidebar({ theme, toggleTheme }: SidebarProps) {
         setMobileOpen(!mobileOpen);
     };
 
+    const toggleCategory = (category: string) => {
+        setExpandedCategories(prev => ({
+            ...prev,
+            [category]: !prev[category]
+        }));
+    };
+
     const categories = {
-        productivity: "Produtividade",
-        development: "Desenvolvimento",
-        utilities: "Utilitários",
-        entertainment: "Entretenimento",
-        information: "Informação",
+        productivity: { name: "Produtividade", icon: ListTodo },
+        entertainment: { name: "Entretenimento", icon: Music },
+        utilities: { name: "Utilitários", icon: Globe },
+        development: { name: "Desenvolvimento", icon: FileText },
     };
 
     const groupedItems = navItems.reduce<Record<string, NavItem[]>>((acc, item) => {
@@ -107,20 +123,8 @@ export function Sidebar({ theme, toggleTheme }: SidebarProps) {
         return acc;
     }, {});
 
-    const priorityItems = [
-        ...groupedItems.productivity?.slice(0, 3) || [],
-        ...groupedItems.development?.slice(0, 2) || [],
-        ...groupedItems.utilities?.slice(0, 1) || [],
-        ...groupedItems.entertainment?.slice(0, 1) || [],
-    ];
-
     const homeItem = navItems.find(item => item.path === "/");
-    if (homeItem) {
-        priorityItems.unshift(homeItem);
-    }
-
     const donationItem = navItems.find(item => item.path === "/donation");
-    const displayedItems = showAllItems ? navItems : priorityItems;
 
     return (
         <>
@@ -162,61 +166,125 @@ export function Sidebar({ theme, toggleTheme }: SidebarProps) {
                         )}
                     </div>
 
+                    <div className="p-2 border-b border-sidebar-border">
+                        <WeatherWidget collapsed={collapsed && !isMobile} />
+                    </div>
+
                     <nav className="flex-1 overflow-y-auto p-2">
                         <TooltipProvider delayDuration={0}>
                             <ul className="space-y-1">
-                                {displayedItems.map((item) => {
-                                    if (item.path === "/donation") return null; // Skip donation item, we'll add it at the end
+                                {/* Home Item */}
+                                {homeItem && (
+                                    <li>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Link
+                                                    to={homeItem.path}
+                                                    className={cn(
+                                                        "flex items-center p-2 rounded-md transition-colors",
+                                                        location.pathname === homeItem.path
+                                                            ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                                            : "hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                                                        collapsed && !isMobile ? "justify-center" : "justify-start"
+                                                    )}
+                                                    onClick={() => isMobile && setMobileOpen(false)}
+                                                >
+                                                    <homeItem.icon size={18} />
+                                                    {(!collapsed || isMobile) && (
+                                                        <span className="ml-3 truncate">
+                                                            {homeItem.name}
+                                                        </span>
+                                                    )}
+                                                </Link>
+                                            </TooltipTrigger>
+                                            {(collapsed && !isMobile) && (
+                                                <TooltipContent side="right">
+                                                    {homeItem.name}
+                                                </TooltipContent>
+                                            )}
+                                        </Tooltip>
+                                    </li>
+                                )}
 
-                                    const isActive = location.pathname === item.path;
+                                {Object.entries(categories).map(([categoryKey, category]) => {
+                                    const categoryItems = groupedItems[categoryKey] || [];
+                                    const isExpanded = expandedCategories[categoryKey];
+
+                                    if (categoryItems.length === 0) return null;
 
                                     return (
-                                        <li key={item.name}>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Link
-                                                        to={item.path}
-                                                        className={cn(
-                                                            "flex items-center p-2 rounded-md transition-colors",
-                                                            isActive
-                                                                ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                                                                : "hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
-                                                            collapsed && !isMobile ? "justify-center" : "justify-start"
-                                                        )}
-                                                        onClick={() => isMobile && setMobileOpen(false)}
+                                        <li key={categoryKey}>
+                                            {(!collapsed || isMobile) ? (
+                                                <>
+                                                    <Button
+                                                        variant="ghost"
+                                                        className="w-full justify-between text-xs font-medium text-muted-foreground hover:text-foreground mb-1 h-8"
+                                                        onClick={() => toggleCategory(categoryKey)}
                                                     >
-                                                        <item.icon size={18} />
-                                                        {(!collapsed || isMobile) && (
-                                                            <span className="ml-3 truncate">
-                                                                {item.name}
-                                                            </span>
-                                                        )}
-                                                    </Link>
-                                                </TooltipTrigger>
-                                                {(collapsed && !isMobile) && (
+                                                        <div className="flex items-center">
+                                                            <category.icon size={14} className="mr-2" />
+                                                            {category.name}
+                                                        </div>
+                                                        {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                                    </Button>
+
+                                                    {isExpanded && (
+                                                        <ul className="space-y-1 ml-2 border-l border-sidebar-border pl-2">
+                                                            {categoryItems.map((item) => {
+                                                                const isActive = location.pathname === item.path;
+                                                                return (
+                                                                    <li key={item.name}>
+                                                                        <Link
+                                                                            to={item.path}
+                                                                            className={cn(
+                                                                                "flex items-center p-1.5 rounded-md transition-colors text-sm",
+                                                                                isActive
+                                                                                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                                                                    : "hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                                                                            )}
+                                                                            onClick={() => isMobile && setMobileOpen(false)}
+                                                                        >
+                                                                            <item.icon size={16} />
+                                                                            <span className="ml-2 truncate">
+                                                                                {item.name}
+                                                                            </span>
+                                                                        </Link>
+                                                                    </li>
+                                                                );
+                                                            })}
+                                                        </ul>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <div className="flex justify-center p-2 mb-2 border-b border-sidebar-border">
+                                                            <category.icon size={18} className="text-muted-foreground" />
+                                                        </div>
+                                                    </TooltipTrigger>
                                                     <TooltipContent side="right">
-                                                        {item.name}
+                                                        <div className="space-y-1">
+                                                            <p className="font-medium">{category.name}</p>
+                                                            {categoryItems.map((item) => (
+                                                                <Link
+                                                                    key={item.name}
+                                                                    to={item.path}
+                                                                    className="block px-2 py-1 hover:bg-accent rounded text-sm"
+                                                                    onClick={() => isMobile && setMobileOpen(false)}
+                                                                >
+                                                                    {item.name}
+                                                                </Link>
+                                                            ))}
+                                                        </div>
                                                     </TooltipContent>
-                                                )}
-                                            </Tooltip>
+                                                </Tooltip>
+                                            )}
                                         </li>
                                     );
                                 })}
 
-                                {(!collapsed || isMobile) && navItems.length > priorityItems.length && (
-                                    <li>
-                                        <Button
-                                            variant="ghost"
-                                            className="w-full justify-start text-muted-foreground hover:text-foreground"
-                                            onClick={() => setShowAllItems(!showAllItems)}
-                                        >
-                                            {showAllItems ? "Mostrar menos" : "Mostrar mais"}
-                                        </Button>
-                                    </li>
-                                )}
-
                                 {donationItem && (
-                                    <li className="mt-4">
+                                    <li className="mt-4 pt-2 border-t border-sidebar-border">
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <Link
@@ -233,7 +301,7 @@ export function Sidebar({ theme, toggleTheme }: SidebarProps) {
                                                     <donationItem.icon size={18} className="text-primary" />
                                                     {(!collapsed || isMobile) && (
                                                         <span className="ml-3 truncate text-primary font-medium">
-                                                          {donationItem.name}
+                                                            {donationItem.name}
                                                         </span>
                                                     )}
                                                 </Link>
@@ -249,13 +317,12 @@ export function Sidebar({ theme, toggleTheme }: SidebarProps) {
                             </ul>
                         </TooltipProvider>
                     </nav>
-
                     <div className={cn(
                         "p-4 border-t border-sidebar-border flex",
                         collapsed && !isMobile ? "justify-center" : "justify-between"
                     )}>
                         {(!collapsed || isMobile) && (
-                            <span className="text-sm text-sidebar-foreground/80">Theme</span>
+                            <span className="text-sm text-sidebar-foreground/80">Tema</span>
                         )}
                         <Button
                             variant="ghost"
