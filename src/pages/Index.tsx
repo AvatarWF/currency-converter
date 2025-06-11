@@ -12,7 +12,13 @@ import {
     FileJson,
     Zap,
     Layout,
-    Coffee
+    Coffee,
+    Newspaper,
+    Bot,
+    DollarSign,
+    Scroll,
+    Youtube,
+    Trello
 } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
@@ -66,6 +72,7 @@ const categories: Category[] = [
 ];
 
 const tools: Tool[] = [
+    // Produtividade
     {
         name: "To-Do List",
         description: "Organize suas tarefas com facilidade",
@@ -77,7 +84,7 @@ const tools: Tool[] = [
     {
         name: "Kanban Board",
         description: "Gerencie projetos com quadros visuais",
-        icon: <Layout className="h-8 w-8" />,
+        icon: <Trello className="h-8 w-8" />,
         path: "/kanban",
         category: "productivity"
     },
@@ -89,6 +96,13 @@ const tools: Tool[] = [
         category: "productivity"
     },
     {
+        name: "Notepad",
+        description: "Anotações rápidas e simples",
+        icon: <Scroll className="h-8 w-8" />,
+        path: "/notepad",
+        category: "productivity"
+    },
+    {
         name: "Water Reminder",
         description: "Lembrete para se hidratar regularmente",
         icon: <Droplet className="h-8 w-8" />,
@@ -96,11 +110,20 @@ const tools: Tool[] = [
         category: "productivity"
     },
     {
-        name: "Notepad",
-        description: "Anotações rápidas e simples",
-        icon: <FileText className="h-8 w-8" />,
-        path: "/notepad",
+        name: "Internet Search",
+        description: "Pesquise na web entre as melhores opções do FlowHub",
+        icon: <Search className="h-8 w-8" />,
+        path: "/internet-search",
         category: "productivity"
+    },
+
+    // Desenvolvimento
+    {
+        name: "AI Tools",
+        description: "Ferramentas de inteligência artificial",
+        icon: <Bot className="h-8 w-8" />,
+        path: "/ai-tools",
+        category: "development"
     },
     {
         name: "Deploy Checklist",
@@ -117,10 +140,10 @@ const tools: Tool[] = [
         category: "development"
     },
     {
-        name: "JSON Formatter",
-        description: "Formate e valide JSON facilmente",
-        icon: <FileJson className="h-8 w-8" />,
-        path: "/json-formatter",
+        name: "Quick Search",
+        description: "Pesquisa rápida em projetos",
+        icon: <Search className="h-8 w-8" />,
+        path: "/search",
         category: "development"
     },
     {
@@ -131,47 +154,30 @@ const tools: Tool[] = [
         category: "development"
     },
     {
-        name: "Quick Search",
-        description: "Pesquisa rápida em projetos",
-        icon: <Search className="h-8 w-8" />,
-        path: "/search",
+        name: "JSON Formatter",
+        description: "Formate e valide JSON facilmente",
+        icon: <FileJson className="h-8 w-8" />,
+        path: "/json-formatter",
         category: "development"
     },
-    {
-        name: "Tech News",
-        description: "Últimas notícias de tecnologia",
-        icon: <Globe className="h-8 w-8" />,
-        path: "/tech-news",
-        category: "utilities"
-    },
-    {
-        name: "Weather",
-        description: "Previsão do tempo atualizada",
-        icon: <Globe className="h-8 w-8" />,
-        path: "/weather",
-        category: "utilities"
-    },
+
+    // Utilitários
     {
         name: "Currency Converter",
         description: "Conversor de moedas em tempo real",
-        icon: <Globe className="h-8 w-8" />,
+        icon: <DollarSign className="h-8 w-8" />,
         path: "/currency-converter",
         category: "utilities"
     },
     {
-        name: "Internet Search",
-        description: "Pesquise na web sem sair do FlowHub",
-        icon: <Search className="h-8 w-8" />,
-        path: "/internet-search",
+        name: "Tech News",
+        description: "Últimas notícias de tecnologia",
+        icon: <Newspaper className="h-8 w-8" />,
+        path: "/tech-news",
         category: "utilities"
     },
-    {
-        name: "AI Tools",
-        description: "Ferramentas de inteligência artificial",
-        icon: <Zap className="h-8 w-8" />,
-        path: "/ai-tools",
-        category: "utilities"
-    },
+
+    // Entretenimento
     {
         name: "Lo-Fi Music",
         description: "Concentre-se com música ambiente",
@@ -181,10 +187,11 @@ const tools: Tool[] = [
     },
     {
         name: "YouTube Player",
-        description: "Player de música do YouTube",
-        icon: <Music className="h-8 w-8" />,
+        description: "Player de vídeos do YouTube",
+        icon: <Youtube className="h-8 w-8" />,
         path: "/youtube-player",
-        category: "entertainment"
+        category: "entertainment",
+        highlight: true
     },
 ];
 
@@ -299,7 +306,7 @@ const Index = () => {
                 </motion.div>
             </motion.section>
 
-            <div className="py-20 px-4 max-w-7xl mx-auto flex-wrap">
+            <div className="py-20 px-4 max-w-7xl mx-auto">
                 {categories.map((category, categoryIndex) => (
                     <motion.section
                         key={category.id}
@@ -334,7 +341,7 @@ const Index = () => {
                         </motion.div>
 
                         <motion.div
-                            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 flex-wrap"
+                            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
                             variants={container}
                         >
                             {getToolsByCategory(category.id).map((tool) => (

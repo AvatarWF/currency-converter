@@ -45,17 +45,17 @@ const FakeData = () => {
     const { toast } = useToast();
 
     const dataTypeOptions = [
-        { value: "name", label: "Nome" },
-        { value: "email", label: "Email" },
-        { value: "phone", label: "Telefone" },
-        { value: "address", label: "Endereço" },
-        { value: "company", label: "Empresa" },
-        { value: "job", label: "Profissão" },
-        { value: "creditCard", label: "Cartão de Crédito" },
-        { value: "product", label: "Produto" },
-        { value: "image", label: "URL de Imagem" },
-        { value: "uuid", label: "UUID" },
-        { value: "date", label: "Data" },
+        { value: "name", label: "Nome", icon: "👤" },
+        { value: "email", label: "Email", icon: "📧" },
+        { value: "phone", label: "Telefone", icon: "📱" },
+        { value: "address", label: "Endereço", icon: "🏠" },
+        { value: "company", label: "Empresa", icon: "🏢" },
+        { value: "job", label: "Profissão", icon: "💼" },
+        { value: "creditCard", label: "Cartão de Crédito", icon: "💳" },
+        { value: "product", label: "Produto", icon: "📦" },
+        { value: "image", label: "URL de Imagem", icon: "🖼️" },
+        { value: "uuid", label: "UUID", icon: "🔑" },
+        { value: "date", label: "Data", icon: "📅" },
     ];
 
     const addDataType = () => {
@@ -150,39 +150,65 @@ const FakeData = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6">Gerador de Dados Falsos</h1>
+        <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+            <div className="max-w-6xl mx-auto px-6 py-8">
+                {/* Header with gradient background */}
+                <div className="text-center mb-12">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-primary/60 rounded-2xl mb-6 shadow-lg">
+                        <span className="text-2xl">🎲</span>
+                    </div>
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent mb-3">
+                        Gerador de Dados Falsos
+                    </h1>
+                    <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                        Crie dados realistas para seus projetos de desenvolvimento e testes
+                    </p>
+                </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                <Card className="lg:col-span-2">
-                    <CardHeader>
-                        <CardTitle>Configure seus dados</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-6">
-                            <div className="space-y-2">
-                                <Label>Tipos de dados</Label>
-                                <div className="flex flex-wrap gap-2 mb-4">
-                                    {dataTypes.map(type => (
-                                        <div
-                                            key={type}
-                                            className="bg-accent text-accent-foreground px-3 py-1 rounded-full text-sm flex items-center gap-1"
-                                        >
-                                            <span>{dataTypeOptions.find(opt => opt.value === type)?.label}</span>
-                                            <button
-                                                onClick={() => removeDataType(type)}
-                                                className="ml-1 text-muted-foreground hover:text-destructive"
-                                            >
-                                                ×
-                                            </button>
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                    <Card className="xl:col-span-2 border-0 shadow-xl bg-card/50 backdrop-blur-sm">
+                        <CardHeader className="pb-6">
+                            <CardTitle className="text-xl flex items-center gap-3">
+                                <div className="w-8 h-8 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg flex items-center justify-center">
+                                    ⚙️
+                                </div>
+                                Configure seus dados
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-8">
+                            <div className="space-y-4">
+                                <Label className="text-base font-medium">Tipos de dados selecionados</Label>
+                                <div className="flex flex-wrap gap-3 min-h-[3rem] p-4 bg-muted/30 rounded-xl border-2 border-dashed border-muted">
+                                    {dataTypes.length > 0 ? (
+                                        dataTypes.map(type => {
+                                            const option = dataTypeOptions.find(opt => opt.value === type);
+                                            return (
+                                                <div
+                                                    key={type}
+                                                    className="group bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 text-primary px-4 py-2 rounded-full text-sm flex items-center gap-2 transition-all hover:scale-105 hover:shadow-md"
+                                                >
+                                                    <span>{option?.icon}</span>
+                                                    <span className="font-medium">{option?.label}</span>
+                                                    <button
+                                                        onClick={() => removeDataType(type)}
+                                                        className="ml-1 w-5 h-5 bg-primary/20 hover:bg-destructive/20 hover:text-destructive rounded-full flex items-center justify-center transition-colors text-xs"
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </div>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="text-muted-foreground text-sm italic">
+                                            Nenhum tipo de dado selecionado
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
 
-                                <div className="flex gap-2">
+                                <div className="flex gap-3">
                                     <Select value={currentType} onValueChange={value => setCurrentType(value as DataType)}>
-                                        <SelectTrigger className="flex-1">
-                                            <SelectValue placeholder="Selecione um tipo" />
+                                        <SelectTrigger className="flex-1 h-12 border-2 hover:border-primary/50 transition-colors">
+                                            <SelectValue placeholder="Selecione um tipo de dado" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {dataTypeOptions.map(option => (
@@ -190,159 +216,224 @@ const FakeData = () => {
                                                     key={option.value}
                                                     value={option.value}
                                                     disabled={dataTypes.includes(option.value)}
+                                                    className="flex items-center gap-2"
                                                 >
+                                                    <span>{option.icon}</span>
                                                     {option.label}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <Button onClick={addDataType} disabled={dataTypes.includes(currentType)}>
+                                    <Button
+                                        onClick={addDataType}
+                                        disabled={dataTypes.includes(currentType)}
+                                        className="h-12 px-6 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all shadow-lg hover:shadow-xl"
+                                    >
                                         Adicionar
                                     </Button>
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="quantity">Quantidade</Label>
-                                <Input
-                                    id="quantity"
-                                    type="number"
-                                    min={1}
-                                    max={100}
-                                    value={quantity}
-                                    onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                                />
+                            <div className="space-y-3">
+                                <Label htmlFor="quantity" className="text-base font-medium">Quantidade de registros</Label>
+                                <div className="relative">
+                                    <Input
+                                        id="quantity"
+                                        type="number"
+                                        min={1}
+                                        max={100}
+                                        value={quantity}
+                                        onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                                        className="h-12 text-lg border-2 hover:border-primary/50 transition-colors pr-16"
+                                    />
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                                        máx. 100
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label>Formato de saída</Label>
-                                <div className="flex gap-2">
+                            <div className="space-y-3">
+                                <Label className="text-base font-medium">Formato de saída</Label>
+                                <div className="grid grid-cols-2 gap-3">
                                     <Button
                                         variant={format === "json" ? "default" : "outline"}
-                                        className="flex-1"
+                                        className={`h-12 text-base transition-all ${
+                                            format === "json"
+                                                ? "bg-gradient-to-r from-primary to-primary/80 shadow-lg"
+                                                : "hover:bg-accent hover:scale-105"
+                                        }`}
                                         onClick={() => setFormat("json")}
                                     >
-                                        JSON
+                                        📄 JSON
                                     </Button>
                                     <Button
                                         variant={format === "csv" ? "default" : "outline"}
-                                        className="flex-1"
+                                        className={`h-12 text-base transition-all ${
+                                            format === "csv"
+                                                ? "bg-gradient-to-r from-primary to-primary/80 shadow-lg"
+                                                : "hover:bg-accent hover:scale-105"
+                                        }`}
                                         onClick={() => setFormat("csv")}
                                     >
-                                        CSV
+                                        📊 CSV
                                     </Button>
                                 </div>
                             </div>
 
-                            <Button onClick={generateFakeData} className="w-full">
-                                <RefreshCw className="mr-2 h-4 w-4" />
-                                Gerar Dados
+                            {/* Generate Button */}
+                            <Button
+                                onClick={generateFakeData}
+                                disabled={dataTypes.length === 0}
+                                className="w-full h-14 text-lg bg-gradient-to-r from-primary via-primary to-primary/80 hover:from-primary/90 hover:via-primary/90 hover:to-primary/70 shadow-xl hover:shadow-2xl transition-all hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100"
+                            >
+                                <RefreshCw className="mr-3 h-5 w-5" />
+                                Gerar Dados Falsos
                             </Button>
-                        </div>
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
 
-                <Card className="lg:row-span-2">
-                    <CardHeader>
-                        <CardTitle>Amostra</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="text-sm italic text-muted-foreground">
-                            Visualize como cada tipo de dado será gerado:
-                        </div>
-
-                        {dataTypeOptions.map(type => (
-                            <div key={type.value} className="space-y-1">
-                                <div className="text-sm font-medium">{type.label}:</div>
-                                <div className="bg-accent/50 p-2 rounded text-sm">
-                                    {(() => {
-                                        switch (type.value) {
-                                            case "name": return faker.person.fullName();
-                                            case "email": return faker.internet.email();
-                                            case "phone": return faker.phone.number();
-                                            case "address": return `${faker.location.streetAddress()}, ${faker.location.city()}`;
-                                            case "company": return faker.company.name();
-                                            case "job": return faker.person.jobTitle();
-                                            case "creditCard": return faker.finance.creditCardNumber();
-                                            case "product": return `${faker.commerce.productName()} - R$${faker.commerce.price()}`;
-                                            case "image": return faker.image.url();
-                                            case "uuid": return faker.string.uuid();
-                                            case "date": return faker.date.recent().toISOString().split('T')[0];
-                                            default: return "";
-                                        }
-                                    })()}
+                    <Card className="xl:row-span-2 border-0 shadow-xl bg-card/50 backdrop-blur-sm">
+                        <CardHeader className="pb-6">
+                            <CardTitle className="text-xl flex items-center gap-3">
+                                <div className="w-8 h-8 bg-gradient-to-br from-secondary/20 to-secondary/10 rounded-lg flex items-center justify-center">
+                                    👁️
                                 </div>
+                                Amostra dos Dados
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg border-l-4 border-primary/50">
+                                💡 Visualize como cada tipo de dado será gerado
                             </div>
-                        ))}
-                    </CardContent>
-                </Card>
 
-                <Card className="lg:col-span-2">
-                    <CardHeader>
-                        <div className="flex justify-between items-center">
-                            <CardTitle>Resultado</CardTitle>
-                            {generatedData.length > 0 && (
-                                <Button variant="outline" size="sm" onClick={copyToClipboard}>
-                                    <Clipboard className="h-4 w-4 mr-2" />
-                                    Copiar
-                                </Button>
-                            )}
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        {generatedData.length > 0 ? (
-                            <Tabs defaultValue="preview">
-                                <TabsList className="mb-4">
-                                    <TabsTrigger value="preview">Preview</TabsTrigger>
-                                    <TabsTrigger value="raw">Raw</TabsTrigger>
-                                </TabsList>
-                                <TabsContent value="preview">
-                                    <div className="border rounded-md overflow-hidden">
-                                        <table className="w-full">
-                                            <thead className="bg-muted text-muted-foreground">
-                                            <tr>
-                                                {Object.keys(generatedData[0]).map(key => (
-                                                    <th key={key} className="p-2 text-left text-xs uppercase">{key}</th>
-                                                ))}
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            {generatedData.slice(0, 5).map((item, index) => (
-                                                <tr key={index} className="border-t">
-                                                    {Object.keys(item).map(key => (
-                                                        <td key={`${index}-${key}`} className="p-2 text-sm">
-                                                            {String(item[key]).length > 40
-                                                                ? String(item[key]).substring(0, 37) + "..."
-                                                                : String(item[key])
-                                                            }
-                                                        </td>
-                                                    ))}
-                                                </tr>
-                                            ))}
-                                            </tbody>
-                                        </table>
-                                        {generatedData.length > 5 && (
-                                            <div className="p-2 text-center text-sm text-muted-foreground border-t">
-                                                Mostrando 5 de {generatedData.length} registros
-                                            </div>
-                                        )}
+                            <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                                {dataTypeOptions.map(type => (
+                                    <div key={type.value} className="group p-4 bg-gradient-to-r from-muted/30 to-muted/10 rounded-xl border hover:border-primary/30 transition-all hover:shadow-md">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-lg">{type.icon}</span>
+                                            <div className="text-sm font-medium text-foreground">{type.label}</div>
+                                        </div>
+                                        <div className="bg-background/50 p-3 rounded-lg text-sm font-mono text-muted-foreground">
+                                            {(() => {
+                                                switch (type.value) {
+                                                    case "name": return faker.person.fullName();
+                                                    case "email": return faker.internet.email();
+                                                    case "phone": return faker.phone.number();
+                                                    case "address": return `${faker.location.streetAddress()}, ${faker.location.city()}`;
+                                                    case "company": return faker.company.name();
+                                                    case "job": return faker.person.jobTitle();
+                                                    case "creditCard": return faker.finance.creditCardNumber();
+                                                    case "product": return `${faker.commerce.productName()} - R$${faker.commerce.price()}`;
+                                                    case "image": return faker.image.url();
+                                                    case "uuid": return faker.string.uuid();
+                                                    case "date": return faker.date.recent().toISOString().split('T')[0];
+                                                    default: return "";
+                                                }
+                                            })()}
+                                        </div>
                                     </div>
-                                </TabsContent>
-                                <TabsContent value="raw">
-                                    <div className="bg-muted p-4 rounded-md">
-                    <pre className="text-xs overflow-auto max-h-80">
-                      {formatDataToString()}
-                    </pre>
-                                    </div>
-                                </TabsContent>
-                            </Tabs>
-                        ) : (
-                            <div className="py-12 text-center text-muted-foreground">
-                                Configure e gere dados para ver os resultados aqui.
+                                ))}
                             </div>
-                        )}
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="xl:col-span-2 border-0 shadow-xl bg-card/50 backdrop-blur-sm">
+                        <CardHeader className="pb-6">
+                            <div className="flex justify-between items-center">
+                                <CardTitle className="text-xl flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-gradient-to-br from-green-500/20 to-green-500/10 rounded-lg flex items-center justify-center">
+                                        ✨
+                                    </div>
+                                    Dados Gerados
+                                    {generatedData.length > 0 && (
+                                        <span className="text-sm bg-primary/10 text-primary px-3 py-1 rounded-full">
+                                            {generatedData.length} registros
+                                        </span>
+                                    )}
+                                </CardTitle>
+                                {generatedData.length > 0 && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={copyToClipboard}
+                                        className="border-2 hover:bg-primary/10 hover:border-primary/50 transition-all hover:scale-105 shadow-lg"
+                                    >
+                                        <Clipboard className="h-4 w-4 mr-2" />
+                                        Copiar
+                                    </Button>
+                                )}
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            {generatedData.length > 0 ? (
+                                <Tabs defaultValue="preview" className="w-full">
+                                    <TabsList className="mb-6 bg-muted/50 p-1 h-12">
+                                        <TabsTrigger value="preview" className="h-10 px-6 data-[state=active]:bg-background data-[state=active]:shadow-md">
+                                            📋 Preview
+                                        </TabsTrigger>
+                                        <TabsTrigger value="raw" className="h-10 px-6 data-[state=active]:bg-background data-[state=active]:shadow-md">
+                                            🔍 Raw Data
+                                        </TabsTrigger>
+                                    </TabsList>
+                                    <TabsContent value="preview" className="space-y-4">
+                                        <div className="border-2 border-muted rounded-xl overflow-hidden shadow-lg">
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full">
+                                                    <thead className="bg-gradient-to-r from-muted to-muted/70">
+                                                    <tr>
+                                                        {Object.keys(generatedData[0]).map(key => (
+                                                            <th key={key} className="p-4 text-left text-xs uppercase font-bold tracking-wider text-muted-foreground">
+                                                                {key}
+                                                            </th>
+                                                        ))}
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-muted/50">
+                                                    {generatedData.slice(0, 5).map((item, index) => (
+                                                        <tr key={index} className="hover:bg-muted/20 transition-colors">
+                                                            {Object.keys(item).map(key => (
+                                                                <td key={`${index}-${key}`} className="p-4 text-sm">
+                                                                    <div className="max-w-[200px] truncate">
+                                                                        {String(item[key])}
+                                                                    </div>
+                                                                </td>
+                                                            ))}
+                                                        </tr>
+                                                    ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            {generatedData.length > 5 && (
+                                                <div className="p-4 text-center text-sm text-muted-foreground bg-gradient-to-r from-muted/30 to-muted/10 border-t">
+                                                    📊 Mostrando 5 de {generatedData.length} registros
+                                                </div>
+                                            )}
+                                        </div>
+                                    </TabsContent>
+                                    <TabsContent value="raw">
+                                        <div className="bg-gradient-to-br from-muted/50 to-muted/30 p-6 rounded-xl border-2 border-muted">
+                                            <pre className="text-xs overflow-auto max-h-96 font-mono text-muted-foreground leading-relaxed">
+                                                {formatDataToString()}
+                                            </pre>
+                                        </div>
+                                    </TabsContent>
+                                </Tabs>
+                            ) : (
+                                <div className="py-16 text-center">
+                                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-muted/50 to-muted/30 rounded-full mb-6">
+                                        <span className="text-2xl">📝</span>
+                                    </div>
+                                    <h3 className="text-lg font-medium text-foreground mb-2">
+                                        Pronto para gerar dados!
+                                    </h3>
+                                    <p className="text-muted-foreground max-w-md mx-auto">
+                                        Configure os tipos de dados e a quantidade, depois clique em "Gerar Dados Falsos" para ver os resultados aqui.
+                                    </p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
         </div>
     );

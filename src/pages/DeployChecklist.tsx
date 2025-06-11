@@ -42,7 +42,7 @@ const DeployChecklist = () => {
     const completedCount = items.filter(item => item.completed).length;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-6">
+        <div className="min-h-screen p-6">
             <div className="max-w-4xl mx-auto">
                 <motion.div
                     initial={{ opacity: 0, y: -30 }}
@@ -50,7 +50,7 @@ const DeployChecklist = () => {
                     transition={{ duration: 0.8, ease: "easeOut" }}
                     className="text-center mb-12"
                 >
-                    <div className="flex items-center justify-center gap-4 mb-6">
+                    <div className="flex items-center justify-center rounded-md p-2 gap-4 mb-6 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
                         <motion.div
                             initial={{ scale: 0, rotate: -180 }}
                             animate={{ scale: 1, rotate: 0 }}
@@ -76,10 +76,10 @@ const DeployChecklist = () => {
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.5, duration: 0.5 }}
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500/20 to-emerald-500/20 backdrop-blur-sm border border-green-400/30 rounded-full text-green-300"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500/50 to-emerald-500/50 backdrop-blur-sm border border-green-400/30 rounded-full text-green-300"
                     >
-                        <CheckSquare size={20} />
-                        <span className="font-medium">
+                        <CheckSquare size={20} className="text-primary" />
+                        <span className="font-medium text-primary">
                           {completedCount} de {items.length} concluídos
                         </span>
                     </motion.div>
@@ -104,7 +104,7 @@ const DeployChecklist = () => {
                     transition={{ delay: 0.8, duration: 0.6 }}
                     className="mt-12 text-center"
                 >
-                    <div className="relative overflow-hidden bg-gradient-to-r from-purple-800/40 to-pink-800/40 backdrop-blur-sm border border-purple-500/30 rounded-2xl p-8">
+                    <div className="relative overflow-hidden bg-gradient-to-r from-purple-800/80 to-pink-800/80 backdrop-blur-sm border border-purple-500/30 rounded-2xl p-8">
                         <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5"></div>
                         <div className="relative z-10">
                             <h3 className="text-2xl font-bold text-white mb-3">

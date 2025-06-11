@@ -1,318 +1,402 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { Droplet, Trash2, Plus } from "lucide-react";
+import {
+    Droplets,
+    Trophy,
+    Target,
+    TrendingUp,
+    Plus,
+    RotateCcw,
+    Award,
+    Calendar,
+    Clock
+} from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
-type WaterRecord = {
-    id: string;
-    timestamp: number;
-    amount: number;
-};
-
-type ReminderSettings = {
-    enabled: boolean;
-    interval: number;
-    target: number;
-};
+interface WaterData {
+    consumed: number;
+    goal: number;
+    streak: number;
+    lastUpdateDate: string;
+    todayGlasses: number;
+}
 
 const WaterReminder = () => {
-    const [waterRecords, setWaterRecords] = useState<WaterRecord[]>(() => {
-        const today = new Date().setHours(0, 0, 0, 0);
-        const savedRecords = localStorage.getItem("waterRecords");
-        if (!savedRecords) return [];
-
-        const parsed = JSON.parse(savedRecords) as WaterRecord[];
-        return parsed.filter(record => record.timestamp >= today);
-    });
-
-    const [settings, setSettings] = useState<ReminderSettings>(() => {
-        const savedSettings = localStorage.getItem("waterReminderSettings");
-        return savedSettings ? JSON.parse(savedSettings) : {
-            enabled: true,
-            interval: 60,
-            target: 2000
-        };
-    });
-
-    const [waterAmount, setWaterAmount] = useState(250);
     const { toast } = useToast();
 
-    const totalWaterConsumed = waterRecords.reduce((sum, record) => sum + record.amount, 0);
-    const progressPercentage = Math.min((totalWaterConsumed / settings.target) * 100, 100);
+    const getInitialData = (): WaterData => {
+        const today = new Date().toDateString();
+        const saved = localStorage.getItem('water-reminder-data');
 
-    useEffect(() => {
-        let notificationTimer: NodeJS.Timeout | null = null;
+        if (saved) {
+            const data: WaterData = JSON.parse(saved);
 
-        if (settings.enabled && Notification.permission === "granted") {
-            notificationTimer = setInterval(() => {
-                if (totalWaterConsumed < settings.target) {
-                    new Notification("Lembrete de água!", {
-                        body: "Está na hora de beber água! 💧",
-                        icon: "/favicon.ico"
-                    });
-
-                    toast({
-                        title: "Hora de se hidratar!",
-                        description: "Não se esqueça de beber água regularmente.",
-                        action: (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => addWaterRecord()}
-                            >
-                                Registrar
-                            </Button>
-                        )
-                    });
-                }
-            }, settings.interval * 60 * 1000);
+            // Se é um novo dia, resetar dados mas manter streak se meta foi atingida
+            if (data.lastUpdateDate !== today) {
+                const wasGoalMet = data.consumed >= data.goal;
+                return {
+                    consumed: 0,
+                    goal: data.goal,
+                    streak: wasGoalMet ? data.streak + 1 : 0,
+                    lastUpdateDate: today,
+                    todayGlasses: 0
+                };
+            }
+            return data;
         }
 
-        return () => {
-            if (notificationTimer) clearInterval(notificationTimer);
+        return {
+            consumed: 0,
+            goal: 2000,
+            streak: 0,
+            lastUpdateDate: today,
+            todayGlasses: 0
         };
+    };
 
-    }, [settings.enabled, settings.interval, totalWaterConsumed, settings.target]);
-
-    useEffect(() => {
-        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
-            Notification.requestPermission();
-        }
-    }, []);
+    const [waterData, setWaterData] = useState<WaterData>(getInitialData);
 
     useEffect(() => {
-        localStorage.setItem("waterRecords", JSON.stringify(waterRecords));
-    }, [waterRecords]);
+        localStorage.setItem('water-reminder-data', JSON.stringify(waterData));
+    }, [waterData]);
 
-    useEffect(() => {
-        localStorage.setItem("waterReminderSettings", JSON.stringify(settings));
-    }, [settings]);
+    const addWater = (amount: number) => {
+        setWaterData(prev => {
+            const newConsumed = prev.consumed + amount;
+            const newGlasses = prev.todayGlasses + 1;
 
-    const addWaterRecord = () => {
-        if (waterAmount <= 0) return;
+            // Verificar se atingiu a meta
+            if (prev.consumed < prev.goal && newConsumed >= prev.goal) {
+                toast({
+                    title: "🎉 Meta atingida!",
+                    description: "Parabéns! Você atingiu sua meta diária de hidratação!",
+                });
+            }
 
-        const record: WaterRecord = {
-            id: Date.now().toString(),
-            timestamp: Date.now(),
-            amount: waterAmount
-        };
+            return {
+                ...prev,
+                consumed: newConsumed,
+                todayGlasses: newGlasses
+            };
+        });
+    };
 
-        setWaterRecords([...waterRecords, record]);
+    const resetDaily = () => {
+        setWaterData(prev => ({
+            ...prev,
+            consumed: 0,
+            todayGlasses: 0
+        }));
 
         toast({
-            title: "Registro adicionado",
-            description: `Você bebeu ${waterAmount}ml de água. Parabéns!`,
+            title: "Dados resetados",
+            description: "Seu progresso do dia foi resetado.",
         });
     };
 
-    const deleteWaterRecord = (id: string) => {
-        setWaterRecords(waterRecords.filter(record => record.id !== id));
+    const waterSizes = [
+        { label: "Copo Pequeno", amount: 200, icon: "🥃" },
+        { label: "Copo Médio", amount: 300, icon: "🥤" },
+        { label: "Garrafa", amount: 500, icon: "🍼" },
+        { label: "Garrafa Grande", amount: 750, icon: "🍶" }
+    ];
+
+    const progressPercentage = Math.min((waterData.consumed / waterData.goal) * 100, 100);
+    const isGoalReached = waterData.consumed >= waterData.goal;
+
+    const getStreakBadge = () => {
+        if (waterData.streak >= 30) return { label: "Lenda", color: "bg-purple-500", icon: "👑" };
+        if (waterData.streak >= 21) return { label: "Mestre", color: "bg-yellow-500", icon: "🏆" };
+        if (waterData.streak >= 14) return { label: "Expert", color: "bg-blue-500", icon: "💎" };
+        if (waterData.streak >= 7) return { label: "Consistente", color: "bg-green-500", icon: "🔥" };
+        if (waterData.streak >= 3) return { label: "Iniciante", color: "bg-orange-500", icon: "⭐" };
+        return { label: "Novato", color: "bg-gray-500", icon: "🌱" };
     };
 
-    const handleIntervalChange = (value: number) => {
-        setSettings({
-            ...settings,
-            interval: Math.max(15, Math.min(240, value))
-        });
-    };
-
-    const handleTargetChange = (value: number) => {
-        setSettings({
-            ...settings,
-            target: Math.max(500, Math.min(5000, value))
-        });
-    };
+    const streakBadge = getStreakBadge();
 
     return (
-        <div className="max-w-xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6">Lembrete de Água</h1>
+        <div className="min-h-screen p-6">
+            <div className="container mx-auto max-w-6xl">
+                {/* Header */}
+                <motion.div
+                    className="text-center mb-8"
+                    initial={{ opacity: 0, y: -30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8 }}
+                >
+                    <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+                        💧 Lembrete de Hidratação
+                    </h1>
+                    <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                        Mantenha-se hidratado e saudável com nosso sistema de acompanhamento diário
+                    </p>
+                </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Progresso de Hoje</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex flex-col items-center">
-                            <div className="relative w-40 h-40 mb-4">
-                                <div className="absolute bottom-0 left-0 right-0 bg-primary/20 rounded-full overflow-hidden transition-all duration-1000"
-                                     style={{ height: `${progressPercentage}%` }}>
-                                    <div className="absolute inset-0 opacity-30">
-                                        <div className="absolute w-full h-2 bg-primary animate-[wave_2s_ease-in-out_infinite]" style={{ top: '10%' }}></div>
-                                        <div className="absolute w-full h-2 bg-primary animate-[wave_1.5s_ease-in-out_infinite]" style={{ top: '20%' }}></div>
-                                        <div className="absolute w-full h-2 bg-primary animate-[wave_2.5s_ease-in-out_infinite]" style={{ top: '30%' }}></div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Copo de Água Visual */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.6 }}
+                        className="lg:col-span-1"
+                    >
+                        <Card className="h-full">
+                            <CardHeader className="text-center pb-4">
+                                <CardTitle className="flex items-center justify-center gap-2">
+                                    <Droplets className="w-6 h-6 text-blue-500" />
+                                    Progresso do Dia
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="flex flex-col items-center">
+                                {/* Copo Visual */}
+                                <div className="relative w-32 h-48 mx-auto mb-6">
+                                    <div className="absolute inset-0 border-4 border-blue-200 rounded-b-3xl rounded-t-lg"></div>
+                                    <motion.div
+                                        className="absolute bottom-0 left-1 right-1 bg-gradient-to-t from-blue-400 to-blue-300 rounded-b-3xl"
+                                        initial={{ height: 0 }}
+                                        animate={{ height: `${progressPercentage}%` }}
+                                        transition={{ duration: 1, ease: "easeOut" }}
+                                    >
+                                        <motion.div
+                                            className="absolute top-0 left-0 right-0 h-2 bg-blue-200 opacity-50"
+                                            animate={{ y: [0, -4, 0] }}
+                                            transition={{ duration: 2, repeat: Infinity }}
+                                        />
+                                    </motion.div>
+
+                                    {/* Indicadores de nível */}
+                                    <div className="absolute right-0 top-0 bottom-0 flex flex-col justify-between py-2">
+                                        {[100, 75, 50, 25].map((level) => (
+                                            <div key={level} className="flex items-center">
+                                                <div className="w-2 h-px bg-gray-300 mr-1"></div>
+                                                <span className="text-xs text-muted-foreground">{level}%</span>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <Droplet size={100} strokeWidth={1} className="text-primary" />
+
+                                <div className="text-center w-full">
+                                    <div className="text-3xl font-bold text-blue-600 mb-2">
+                                        {waterData.consumed}ml
+                                    </div>
+                                    <div className="text-muted-foreground mb-4">
+                                        de {waterData.goal}ml
+                                    </div>
+                                    <Progress value={progressPercentage} className="w-full mb-4" />
+                                    <div className="text-sm text-muted-foreground">
+                                        {progressPercentage.toFixed(1)}% da meta diária
+                                    </div>
                                 </div>
-                            </div>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
 
-                            <p className="text-2xl font-bold mb-1">
-                                {totalWaterConsumed} / {settings.target} ml
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                                {Math.round(progressPercentage)}% do objetivo diário
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
+                    {/* Botões de Adicionar Água */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.2 }}
+                        className="lg:col-span-1"
+                    >
+                        <Card className="h-full">
+                            <CardHeader>
+                                <CardTitle className="flex items-center justify-center gap-2">
+                                    <Plus className="w-6 h-6 text-green-500" />
+                                    Adicionar Água
+                                </CardTitle>
+                                <CardDescription className="text-center">
+                                    Escolha o tamanho do copo ou garrafa
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-2 gap-3">
+                                    {waterSizes.map((size, index) => (
+                                        <motion.div
+                                            key={size.amount}
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                        >
+                                            <Button
+                                                onClick={() => addWater(size.amount)}
+                                                variant="outline"
+                                                className="w-full h-20 flex flex-col items-center justify-center gap-2 hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                                            >
+                                                <span className="text-2xl">{size.icon}</span>
+                                                <div className="text-center">
+                                                    <div className="text-sm font-medium">{size.label}</div>
+                                                    <div className="text-xs text-muted-foreground">{size.amount}ml</div>
+                                                </div>
+                                            </Button>
+                                        </motion.div>
+                                    ))}
+                                </div>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Adicionar Registro</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="waterAmount">Quantidade (ml)</Label>
-                                <Input
-                                    id="waterAmount"
-                                    type="number"
-                                    value={waterAmount}
-                                    onChange={(e) => setWaterAmount(parseInt(e.target.value) || 0)}
-                                />
-                            </div>
+                                <div className="pt-4 border-t">
+                                    <Button
+                                        onClick={resetDaily}
+                                        variant="ghost"
+                                        className="w-full h-12 flex items-center justify-center gap-2 text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                                    >
+                                        <RotateCcw className="w-4 h-4" />
+                                        Resetar Dia
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
 
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={() => setWaterAmount(150)}
-                                >
-                                    150ml
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={() => setWaterAmount(250)}
-                                >
-                                    250ml
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={() => setWaterAmount(500)}
-                                >
-                                    500ml
-                                </Button>
-                            </div>
+                    {/* Estatísticas e Conquistas */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.4 }}
+                        className="lg:col-span-1 space-y-6"
+                    >
+                        {/* Status da Meta */}
+                        <Card>
+                            <CardHeader className="pb-4">
+                                <CardTitle className="flex items-center justify-center gap-2">
+                                    <Target className="w-6 h-6 text-green-500" />
+                                    Status da Meta
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="text-center">
+                                <AnimatePresence mode="wait">
+                                    {isGoalReached ? (
+                                        <motion.div
+                                            key="completed"
+                                            initial={{ scale: 0.8, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            exit={{ scale: 0.8, opacity: 0 }}
+                                            className="space-y-3"
+                                        >
+                                            <div className="text-6xl">🎉</div>
+                                            <div className="text-green-600 font-bold text-lg">Meta Atingida!</div>
+                                            <Badge className="bg-green-100 text-green-800 border-green-200">
+                                                Parabéns!
+                                            </Badge>
+                                        </motion.div>
+                                    ) : (
+                                        <motion.div
+                                            key="progress"
+                                            initial={{ scale: 0.8, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            exit={{ scale: 0.8, opacity: 0 }}
+                                            className="space-y-3"
+                                        >
+                                            <div className="text-4xl">💪</div>
+                                            <div className="text-muted-foreground">
+                                                Faltam <span className="font-bold text-blue-600">
+                                                    {waterData.goal - waterData.consumed}ml
+                                                </span>
+                                            </div>
+                                            <Badge variant="outline">
+                                                Continue Bebendo!
+                                            </Badge>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </CardContent>
+                        </Card>
 
-                            <Button
-                                className="w-full"
-                                onClick={addWaterRecord}
-                                disabled={waterAmount <= 0}
-                            >
-                                <Plus className="mr-2 h-4 w-4" />
-                                Adicionar Registro
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+                        {/* Streak e Conquistas */}
+                        <Card>
+                            <CardHeader className="pb-4">
+                                <CardTitle className="flex items-center justify-center gap-2">
+                                    <Trophy className="w-6 h-6 text-yellow-500" />
+                                    Conquistas
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="text-center">
+                                    <div className="text-3xl mb-2">{streakBadge.icon}</div>
+                                    <Badge className={`${streakBadge.color} text-white border-0 mb-2`}>
+                                        {streakBadge.label}
+                                    </Badge>
+                                    <div className="text-2xl font-bold text-foreground">
+                                        {waterData.streak} dias
+                                    </div>
+                                    <div className="text-sm text-muted-foreground">
+                                        sequência atual
+                                    </div>
+                                </div>
 
-            <Card className="mb-8">
-                <CardHeader>
-                    <CardTitle>Configurações do Lembrete</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <Label htmlFor="enableReminder">Lembretes</Label>
-                            <div className="flex items-center space-x-2">
-                                <Button
-                                    variant={settings.enabled ? "default" : "outline"}
-                                    size="sm"
-                                    onClick={() => setSettings({ ...settings, enabled: true })}
-                                >
-                                    Ligado
-                                </Button>
-                                <Button
-                                    variant={!settings.enabled ? "default" : "outline"}
-                                    size="sm"
-                                    onClick={() => setSettings({ ...settings, enabled: false })}
-                                >
-                                    Desligado
-                                </Button>
-                            </div>
-                        </div>
+                                <div className="space-y-3 pt-4 border-t">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <Calendar className="w-4 h-4 text-muted-foreground" />
+                                            <span className="text-sm">Hoje</span>
+                                        </div>
+                                        <Badge variant="outline">
+                                            {waterData.todayGlasses} copos
+                                        </Badge>
+                                    </div>
 
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                                <Label htmlFor="reminderInterval">Intervalo</Label>
-                                <span className="text-sm text-muted-foreground">
-                                    {settings.interval} minutos
-                                </span>
-                            </div>
-                            <Input
-                                id="reminderInterval"
-                                type="range"
-                                min={15}
-                                max={240}
-                                step={5}
-                                value={settings.interval}
-                                onChange={(e) => handleIntervalChange(parseInt(e.target.value))}
-                                className="cursor-pointer"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                                <Label htmlFor="waterTarget">Meta Diária</Label>
-                                <span className="text-sm text-muted-foreground">
-                                    {settings.target} ml
-                                </span>
-                            </div>
-                            <Input
-                                id="waterTarget"
-                                type="range"
-                                min={500}
-                                max={5000}
-                                step={100}
-                                value={settings.target}
-                                onChange={(e) => handleTargetChange(parseInt(e.target.value))}
-                                className="cursor-pointer"
-                            />
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Registros de Hoje</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {waterRecords.length === 0 ? (
-                        <p className="text-center text-muted-foreground py-6">
-                            Você ainda não registrou nenhuma hidratação hoje.
-                        </p>
-                    ) : (
-                        <ul className="space-y-2">
-                            {waterRecords.map((record) => (
-                                <li key={record.id} className="flex items-center justify-between p-2 border rounded-md">
-                                    <div>
-                                        <span className="font-medium">{record.amount} ml</span>
-                                        <span className="text-sm text-muted-foreground ml-2">
-                                          {new Date(record.timestamp).toLocaleTimeString()}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="w-4 h-4 text-muted-foreground" />
+                                            <span className="text-sm">Última atualização</span>
+                                        </div>
+                                        <span className="text-sm text-muted-foreground">
+                                            {new Date().toLocaleTimeString('pt-BR', {
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
                                         </span>
                                     </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => deleteWaterRecord(record.id)}
-                                        className="text-muted-foreground hover:text-destructive"
-                                    >
-                                        <Trash2 size={16} />
-                                    </Button>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </CardContent>
-            </Card>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
+                </div>
+
+                {/* Dicas de Hidratação */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.6 }}
+                    className="mt-8"
+                >
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center justify-center gap-2">
+                                <TrendingUp className="w-6 h-6 text-blue-500" />
+                                Dicas de Hidratação
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                                <div className="space-y-2">
+                                    <div className="text-3xl">🌅</div>
+                                    <h3 className="font-semibold">Comece o dia</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        Beba um copo de água logo ao acordar
+                                    </p>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="text-3xl">⏰</div>
+                                    <h3 className="font-semibold">Intervalos regulares</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        Beba água a cada 2 horas durante o dia
+                                    </p>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="text-3xl">🍽️</div>
+                                    <h3 className="font-semibold">Antes das refeições</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        Um copo 30 minutos antes de comer
+                                    </p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </motion.div>
+            </div>
         </div>
     );
 };
